@@ -1,0 +1,124 @@
+CREATE DATABASE IF NOT EXISTS movie_ticket_booking;
+USE movie_ticket_booking;
+
+-- THEATRE Table
+CREATE TABLE IF NOT EXISTS THEATRE (
+    TheatreID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Location VARCHAR(255) NOT NULL,
+    City VARCHAR(100) NOT NULL
+) ENGINE=InnoDB;
+
+-- SCREEN Table
+CREATE TABLE IF NOT EXISTS SCREEN (
+    ScreenID INT AUTO_INCREMENT PRIMARY KEY,
+    ScreenNumber VARCHAR(20) NOT NULL,
+    SeatCapacity INT NOT NULL CHECK (SeatCapacity > 0),
+    TheatreID INT NOT NULL,
+    FOREIGN KEY (TheatreID) REFERENCES THEATRE(TheatreID) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- SEAT Table
+CREATE TABLE IF NOT EXISTS SEAT (
+    SeatID INT AUTO_INCREMENT PRIMARY KEY,
+    SeatNumber VARCHAR(10) NOT NULL,
+    SeatType ENUM('REGULAR', 'PREMIUM', 'VIP') NOT NULL DEFAULT 'REGULAR',
+    ScreenID INT NOT NULL,
+    FOREIGN KEY (ScreenID) REFERENCES SCREEN(ScreenID) ON DELETE CASCADE,
+    UNIQUE (ScreenID, SeatNumber) -- Same seat number can't exist twice in the same screen
+) ENGINE=InnoDB;
+
+-- MOVIE Table
+CREATE TABLE IF NOT EXISTS MOVIE (
+    MovieID INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(255) NOT NULL,
+    Genre VARCHAR(100),
+    Language VARCHAR(50),
+    Duration INT NOT NULL CHECK (Duration > 0), -- Duration in minutes
+    ReleaseDate DATE
+) ENGINE=InnoDB;
+
+-- CUSTOMER Table
+CREATE TABLE IF NOT EXISTS CUSTOMER (
+    CustomerID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    Phone VARCHAR(20),
+    Password VARCHAR(255) NOT NULL -- Hashed password
+) ENGINE=InnoDB;
+
+-- SHOW Table
+CREATE TABLE IF NOT EXISTS `SHOW` (
+    ShowID INT AUTO_INCREMENT PRIMARY KEY,
+    ShowDate DATE NOT NULL,
+    ShowTime TIME NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL CHECK (Price >= 0),
+    MovieID INT NOT NULL,
+    ScreenID INT NOT NULL,
+    FOREIGN KEY (MovieID) REFERENCES MOVIE(MovieID) ON DELETE CASCADE,
+    FOREIGN KEY (ScreenID) REFERENCES SCREEN(ScreenID) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- BOOKING Table
+CREATE TABLE IF NOT EXISTS BOOKING (
+    BookingID INT AUTO_INCREMENT PRIMARY KEY,
+    BookingDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    TotalAmount DECIMAL(10, 2) NOT NULL CHECK (TotalAmount >= 0),
+    Status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'FAILED') NOT NULL DEFAULT 'PENDING',
+    CustomerID INT NOT NULL,
+    ShowID INT NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
+    FOREIGN KEY (ShowID) REFERENCES `SHOW`(ShowID) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- BOOKING_SEAT Table
+-- THIS IS THE CRITICAL CONCURRENCY FIX requested by user
+CREATE TABLE IF NOT EXISTS BOOKING_SEAT (
+    BookingID INT NOT NULL,
+    ShowID INT NOT NULL,
+    SeatID INT NOT NULL,
+    PRIMARY KEY (BookingID, SeatID),
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID) ON DELETE CASCADE,
+    FOREIGN KEY (ShowID) REFERENCES `SHOW`(ShowID) ON DELETE CASCADE,
+    FOREIGN KEY (SeatID) REFERENCES SEAT(SeatID) ON DELETE CASCADE,
+    UNIQUE (ShowID, SeatID) -- Guarantees one seat = one active booking for a given show
+) ENGINE=InnoDB;
+
+-- PAYMENT Table
+CREATE TABLE IF NOT EXISTS PAYMENT (
+    PaymentID INT AUTO_INCREMENT PRIMARY KEY,
+    Amount DECIMAL(10, 2) NOT NULL CHECK (Amount >= 0),
+    PaymentMode ENUM('UPI', 'CARD', 'NET_BANKING') NOT NULL,
+    PaymentStatus ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+    BookingID INT NOT NULL UNIQUE, -- 1:1 Relationship
+    TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- INDEXES for Performance
+CREATE INDEX idx_show_movie ON `SHOW`(MovieID);
+CREATE INDEX idx_show_screen ON `SHOW`(ScreenID);
+CREATE INDEX idx_show_date ON `SHOW`(ShowDate);
+CREATE INDEX idx_booking_customer ON BOOKING(CustomerID);
+CREATE INDEX idx_booking_show ON BOOKING(ShowID);
+CREATE INDEX idx_booking_seat_show_seat ON BOOKING_SEAT(ShowID, SeatID);
+
+-- VIEWS
+
+-- View to get all seats for a show with their current booking status
+CREATE OR REPLACE VIEW view_show_seats AS
+SELECT 
+    s.SeatID,
+    s.SeatNumber,
+    s.SeatType,
+    sh.ShowID,
+    sh.Price,
+    CASE 
+        WHEN b.Status = 'CANCELLED' OR b.Status = 'FAILED' THEN 'AVAILABLE'
+        WHEN bs.SeatID IS NULL THEN 'AVAILABLE'
+        ELSE 'BOOKED'
+    END AS Status
+FROM SEAT s
+JOIN `SHOW` sh ON s.ScreenID = sh.ScreenID
+LEFT JOIN BOOKING_SEAT bs ON s.SeatID = bs.SeatID AND sh.ShowID = bs.ShowID
+LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;
