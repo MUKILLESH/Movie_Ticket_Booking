@@ -9,6 +9,7 @@ import MovieDetails from './pages/MovieDetails';
 import SeatSelection from './pages/SeatSelection';
 import BookingConfirmation from './pages/BookingConfirmation';
 import DemoDashboard from './pages/DemoDashboard';
+import DatabaseSchema from './pages/DatabaseSchema';
 
 // Wrap Routes to allow useLocation for AnimatePresence
 function AnimatedRoutes() {
@@ -22,6 +23,7 @@ function AnimatedRoutes() {
         <Route path="/shows/:showId/seats" element={<SeatSelection />} />
         <Route path="/booking/:bookingId" element={<BookingConfirmation />} />
         <Route path="/demo" element={<DemoDashboard />} />
+        <Route path="/schema" element={<DatabaseSchema />} />
       </Routes>
     </AnimatePresence>
   );
@@ -94,6 +96,9 @@ function Navbar() {
             boxShadow: `0 0 8px ${isDemo ? 'rgba(176,138,62,0.4)' : 'transparent'}`
           }} />
           DBMS LAB
+        </Link>
+        <Link to="/schema" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+          DATABASE SCHEMA
         </Link>
       </div>
     </motion.nav>
