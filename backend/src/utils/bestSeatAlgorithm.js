@@ -17,13 +17,19 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
     // 1. Group seats by row
     // Assuming SeatNumber format is "A1", "A2", "B1" etc.
     const rowGroups = {};
+    const maxNumInRow = {};
+
     for (const seat of seats) {
         const rowChar = seat.SeatNumber.match(/^[A-Za-z]+/)[0];
         const num = parseInt(seat.SeatNumber.match(/\d+$/)[0], 10);
         
         if (!rowGroups[rowChar]) {
             rowGroups[rowChar] = [];
+            maxNumInRow[rowChar] = 0;
         }
+
+        maxNumInRow[rowChar] = Math.max(maxNumInRow[rowChar], num);
+
         // Enhance seat object for sorting and distance calculation
         rowGroups[rowChar].push({
             ...seat,
@@ -51,21 +57,21 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
                 } else {
                     // Gap found, process existing sequence
                     if (currentSequence.length >= requestedSize) {
-                        extractSubBlocks(currentSequence, requestedSize, candidateBlocks, rowSeats.length);
+                        extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
                     }
                     currentSequence = [seat];
                 }
             } else {
                 // Booked seat, process sequence and reset
                 if (currentSequence.length >= requestedSize) {
-                    extractSubBlocks(currentSequence, requestedSize, candidateBlocks, rowSeats.length);
+                    extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
                 }
                 currentSequence = [];
             }
         }
         // End of row
         if (currentSequence.length >= requestedSize) {
-            extractSubBlocks(currentSequence, requestedSize, candidateBlocks, rowSeats.length);
+            extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
         }
     }
 
@@ -81,7 +87,7 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
         // Primary: Distance from center of the row
         // A block's center should ideally align with the row's center
         const rowLength = block.rowLength;
-        const centerOfRow = rowLength / 2;
+        const centerOfRow = (1 + rowLength) / 2;
         
         const blockStart = block.seats[0].num;
         const blockEnd = block.seats[block.seats.length - 1].num;
@@ -107,7 +113,11 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
 
     // 4. Return best block
     candidateBlocks.sort((a, b) => a.score - b.score);
-    return candidateBlocks[0].seats;
+    // Return original seat objects
+    return candidateBlocks[0].seats.map(s => {
+        const { row, num, score, ...originalSeat } = s;
+        return originalSeat;
+    });
 }
 
 function extractSubBlocks(sequence, requestedSize, candidateBlocks, rowLength) {
