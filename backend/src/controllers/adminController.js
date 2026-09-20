@@ -9,8 +9,8 @@ exports.getStats = async (req, res, next) => {
             seats: 'SELECT COUNT(*) as count FROM SEAT',
             customers: 'SELECT COUNT(*) as count FROM CUSTOMER',
             totalBookings: 'SELECT COUNT(*) as count FROM BOOKING',
-            confirmedBookings: 'SELECT COUNT(*) as count FROM BOOKING WHERE Status = "CONFIRMED"',
-            revenue: 'SELECT SUM(TotalAmount) as total FROM BOOKING WHERE Status = "CONFIRMED"'
+            confirmedBookings: "SELECT COUNT(*) as count FROM BOOKING WHERE Status = 'CONFIRMED'",
+            revenue: "SELECT SUM(TotalAmount) as total FROM BOOKING WHERE Status = 'CONFIRMED'"
         };
 
         const stats = {};

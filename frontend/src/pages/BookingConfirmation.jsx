@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, QrCode } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const FALLBACK_IMAGES = [
     'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
