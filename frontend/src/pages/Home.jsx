@@ -391,9 +391,6 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
 
     // Camera & renderer setup
     useEffect(() => {
-        camera.position.set(0, 0.3, 14);
-        camera.fov = 38;
-        camera.updateProjectionMatrix();
         if (gl) {
             gl.toneMapping = THREE.ACESFilmicToneMapping;
             gl.toneMappingExposure = 1.05;
@@ -585,7 +582,7 @@ export default function Home() {
                     onPointerUp={onPointerUp} onPointerLeave={onPointerUp}>
                     <Canvas dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}
                         style={{ background: 'transparent' }}>
-                        <PerspectiveCamera makeDefault />
+                        <PerspectiveCamera makeDefault fov={38} position={[0, 0.3, 14]} />
                         <HeroScene isDragging={isDragging} dragDeltaX={dragDeltaX} reducedMotion={reducedMotion} />
                     </Canvas>
                 </div>
