@@ -310,3 +310,17 @@ exports.resetSeed = async (req, res, next) => {
     }
 };
 
+exports.executeRawSql = async (req, res, next) => {
+    try {
+        const { sql } = req.body;
+        if (!sql) {
+            return res.status(400).json({ error: 'Bad Request', message: 'SQL query is required' });
+        }
+        
+        const [rows] = await pool.query(sql);
+        res.status(200).json({ result: rows });
+    } catch (error) {
+        res.status(400).json({ error: 'SQL Error', message: error.message });
+    }
+};
+

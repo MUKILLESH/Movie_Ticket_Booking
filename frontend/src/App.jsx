@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import { Clapperboard, Terminal } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 import Home from './pages/Home';
 import MovieDetails from './pages/MovieDetails';
@@ -156,15 +160,17 @@ function App() {
       infinite: false,
     });
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    lenis.on('scroll', ScrollTrigger.update);
 
-    requestAnimationFrame(raf);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
+      gsap.ticker.remove((time) => lenis.raf(time * 1000));
     };
   }, []);
 

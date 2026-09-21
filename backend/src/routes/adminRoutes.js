@@ -10,6 +10,7 @@ router.get('/presets', adminController.getPresets);
 router.post('/reset-seed', adminController.resetSeed);
 router.get('/rate-limit-test', demoLimiter);
 router.post('/rate-limit-reset', resetDemoLimiter);
+router.post('/execute-raw-sql', adminController.executeRawSql);
 
 module.exports = router;
 
