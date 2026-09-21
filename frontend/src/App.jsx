@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard, Terminal } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Lenis from 'lenis';
 
@@ -10,6 +10,7 @@ import SeatSelection from './pages/SeatSelection';
 import BookingConfirmation from './pages/BookingConfirmation';
 import DemoDashboard from './pages/DemoDashboard';
 import DatabaseSchema from './pages/DatabaseSchema';
+import SqlQueryConsole from './pages/SqlQueryConsole';
 
 // Wrap Routes to allow useLocation for AnimatePresence
 function AnimatedRoutes() {
@@ -24,6 +25,9 @@ function AnimatedRoutes() {
         <Route path="/booking/:bookingId" element={<BookingConfirmation />} />
         <Route path="/demo" element={<DemoDashboard />} />
         <Route path="/schema" element={<DatabaseSchema />} />
+        <Route path="/sql-console" element={<SqlQueryConsole />} />
+        <Route path="/query-console" element={<SqlQueryConsole />} />
+        <Route path="/sql-runner" element={<SqlQueryConsole />} />
       </Routes>
     </AnimatePresence>
   );
@@ -42,6 +46,7 @@ function Navbar() {
   }, []);
 
   const isDemo = location.pathname === '/demo';
+  const isSqlConsole = location.pathname === '/sql-console' || location.pathname === '/query-console' || location.pathname === '/sql-runner';
 
   return (
     <motion.nav 
@@ -65,19 +70,16 @@ function Navbar() {
         color: 'var(--c-text-primary)'
       }}
     >
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
         <Clapperboard color="var(--c-gold)" size={20} />
         <span className="font-serif" style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '0.02em', color: 'var(--c-text-primary)' }}>
           CineTicket
         </span>
       </Link>
       
-      <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em' }}>
-        <Link to="/" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+      <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em' }}>
+        <Link to="/" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
           MOVIES
-        </Link>
-        <Link to="/" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
-          MY BOOKINGS
         </Link>
         <Link to="/demo" style={{ 
           display: 'flex', 
@@ -85,6 +87,7 @@ function Navbar() {
           gap: '0.5rem',
           color: isDemo ? 'var(--c-gold)' : 'var(--c-text-primary)',
           opacity: 0.9,
+          textDecoration: 'none',
           transition: 'all 0.2s'
         }}>
           <span style={{ 
@@ -97,8 +100,42 @@ function Navbar() {
           }} />
           DBMS LAB
         </Link>
-        <Link to="/schema" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+        <Link to="/schema" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
           DATABASE SCHEMA
+        </Link>
+        <Link 
+          to="/sql-console" 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.5rem 1.15rem',
+            borderRadius: '20px',
+            backgroundColor: isSqlConsole ? 'var(--c-gold)' : 'rgba(176,138,62,0.12)',
+            border: '1px solid var(--c-gold)',
+            color: isSqlConsole ? '#FFFFFF' : 'var(--c-gold-dark)',
+            textDecoration: 'none',
+            fontWeight: 700,
+            fontSize: '0.78rem',
+            letterSpacing: '0.08em',
+            transition: 'all 0.25s ease',
+            boxShadow: isSqlConsole ? '0 0 15px rgba(176,138,62,0.35)' : 'none'
+          }}
+          onMouseEnter={(e) => {
+            if (!isSqlConsole) {
+              e.currentTarget.style.backgroundColor = 'var(--c-gold)';
+              e.currentTarget.style.color = '#FFFFFF';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSqlConsole) {
+              e.currentTarget.style.backgroundColor = 'rgba(176,138,62,0.12)';
+              e.currentTarget.style.color = 'var(--c-gold-dark)';
+            }
+          }}
+        >
+          <Terminal size={14} />
+          <span>SQL QUERY CONSOLE</span>
         </Link>
       </div>
     </motion.nav>

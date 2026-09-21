@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Activity, Play, Shield, BarChart, RotateCcw, Terminal, ArrowRight } from 'lucide-react';
+import { Database, Activity, Play, Shield, BarChart, RotateCcw, Terminal, ArrowRight, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 export default function DemoDashboard() {
     const [logs, setLogs] = useState([]);
@@ -328,6 +329,67 @@ export default function DemoDashboard() {
                 >
                     <RotateCcw size={14} /> Refresh Data
                 </button>
+            </div>
+
+            {/* SQL Console Teacher Demo Callout Banner */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1.25rem 2rem',
+                backgroundColor: 'rgba(176,138,62,0.12)',
+                border: '1px solid var(--c-gold)',
+                borderRadius: '8px',
+                marginBottom: '3rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--c-gold)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FFFFFF'
+                    }}>
+                        <Terminal size={18} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--c-text-primary)' }}>
+                            Teacher Demonstration: Live SQL Query Execution (INSERT, UPDATE, DELETE)
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--c-text-secondary)' }}>
+                            Demonstrate adding new movies, editing titles, deleting shows, and inspecting tables with pre-built example commands.
+                        </div>
+                    </div>
+                </div>
+
+                <Link
+                    to="/sql-console"
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: 'var(--c-gold)',
+                        color: '#FFFFFF',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 15px rgba(176,138,62,0.3)',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--c-gold-dark)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--c-gold)'}
+                >
+                    Launch SQL Console <ArrowRight size={14} />
+                </Link>
             </div>
 
             {/* Metrics Row */}

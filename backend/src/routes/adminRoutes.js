@@ -5,6 +5,9 @@ const { demoLimiter, resetDemoLimiter } = require('../middleware/rateLimiter');
 
 router.get('/stats', adminController.getStats);
 router.post('/demo-query', adminController.runDemoQuery);
+router.post('/execute-sql', adminController.executeSql);
+router.get('/presets', adminController.getPresets);
+router.post('/reset-seed', adminController.resetSeed);
 router.get('/rate-limit-test', demoLimiter);
 router.post('/rate-limit-reset', resetDemoLimiter);
 

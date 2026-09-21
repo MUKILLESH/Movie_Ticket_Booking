@@ -51,13 +51,13 @@ function FilmReel({ position = [0, 0, 0] }) {
     return (
         <group position={position} ref={groupRef}>
             <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-                <group rotation={[Math.PI/6, Math.PI/4, 0]}>
+                <group rotation={[Math.PI / 6, Math.PI / 4, 0]}>
                     {/* Top Plate */}
                     <mesh position={[0, 0.2, 0]}>
                         <cylinderGeometry args={[2, 2, 0.05, 32]} />
                         <meshStandardMaterial {...brassMaterial} />
                     </mesh>
-                    
+
                     {/* Film Core (Dark) */}
                     <mesh position={[0, 0, 0]}>
                         <cylinderGeometry args={[1.5, 1.5, 0.4, 32]} />
@@ -69,7 +69,7 @@ function FilmReel({ position = [0, 0, 0] }) {
                         <cylinderGeometry args={[2, 2, 0.05, 32]} />
                         <meshStandardMaterial {...brassMaterial} />
                     </mesh>
-                    
+
                     {/* Cutouts to make it look like a reel (simplified via 3 smaller cylinders) */}
                     {/* Note: In a real app we'd use CSG or a custom model, this is an elegant approximation */}
                 </group>
@@ -107,7 +107,7 @@ function HeroScene() {
                 castShadow
             />
             <pointLight position={[-5, 5, -5]} intensity={1} color="#B08A3E" />
-            
+
             <FilmReel position={[3, 0, 0]} />
         </group>
     );
@@ -154,7 +154,7 @@ export default function Home() {
     if (loading) return null;
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, backgroundColor: 'var(--c-bg-main)' }}
@@ -163,7 +163,7 @@ export default function Home() {
         >
             {/* Hero Section */}
             <section style={{ position: 'relative', height: '100vh', width: '100%', display: 'flex', paddingTop: '80px' }}>
-                
+
                 {/* 3D Background Layer */}
                 <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.6, pointerEvents: 'none' }}>
                     <Canvas dpr={[1, 2]}>
@@ -175,33 +175,33 @@ export default function Home() {
                 <div style={{ position: 'relative', zIndex: 10, display: 'flex', width: '100%', maxWidth: '1440px', margin: '0 auto' }}>
                     {/* Left: Editorial Content */}
                     <div style={{ width: '50%', padding: '4rem 0 4rem 4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <h1 className="font-serif" style={{ 
-                            fontSize: 'clamp(4rem, 6vw, 7rem)', 
+                        <h1 className="font-serif" style={{
+                            fontSize: 'clamp(4rem, 6vw, 7rem)',
                             color: 'var(--c-text-primary)',
                             lineHeight: 1,
                             letterSpacing: '-0.02em',
                             marginBottom: '2rem'
                         }}>
-                            THE NIGHT<br />STARTS HERE.
+                            NOVELTY<br />CINEMA EXPERIENCE.
                         </h1>
-                        
+
                         <div style={{ width: '60px', height: '2px', backgroundColor: 'var(--c-gold)', marginBottom: '2rem' }} />
-                        
-                        <p className="font-sans" style={{ 
-                            color: 'var(--c-text-secondary)', 
-                            fontSize: '1rem', 
+
+                        <p className="font-sans" style={{
+                            color: 'var(--c-text-secondary)',
+                            fontSize: '1rem',
                             letterSpacing: '0.15em',
                             textTransform: 'uppercase',
                             marginBottom: '4rem',
                             fontWeight: 500
                         }}>
-                            Curated cinema.<br/>Premium experiences.
+                            Labs Project<br />Database Management
                         </p>
 
                         <div>
-                            <button 
+                            <button
                                 onClick={() => document.getElementById('now-showing').scrollIntoView({ behavior: 'smooth' })}
-                                style={{ 
+                                style={{
                                     padding: '1.25rem 3rem',
                                     backgroundColor: 'var(--c-surface)',
                                     color: 'var(--c-text-primary)',
@@ -234,9 +234,9 @@ export default function Home() {
 
                     {/* Right: Premium Imagery */}
                     <div style={{ width: '50%', padding: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ 
-                            width: '100%', 
-                            aspectRatio: '3/4', 
+                        <div style={{
+                            width: '100%',
+                            aspectRatio: '3/4',
                             position: 'relative',
                             borderRadius: '16px',
                             boxShadow: '0 40px 80px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.05)',
@@ -244,7 +244,7 @@ export default function Home() {
                             padding: '1rem',
                             border: '1px solid rgba(176,138,62,0.1)'
                         }}>
-                            <img 
+                            <img
                                 src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1200&q=80"
                                 alt="Cinema Interior"
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
@@ -262,10 +262,10 @@ export default function Home() {
                     <h2 className="font-serif" style={{ fontSize: '2.5rem', color: 'var(--c-text-primary)', margin: 0 }}>
                         NOW SHOWING
                     </h2>
-                    
+
                     {/* Progress Indicator */}
                     <div style={{ width: '200px', height: '1px', backgroundColor: 'rgba(23,23,23,0.1)', position: 'relative' }}>
-                        <div style={{ 
+                        <div style={{
                             position: 'absolute', top: 0, left: 0, height: '100%', width: '100%',
                             backgroundColor: 'var(--c-gold)',
                             transformOrigin: 'left',
@@ -275,7 +275,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div 
+                <div
                     ref={railRef}
                     className="hide-scrollbar"
                     style={{
@@ -289,19 +289,20 @@ export default function Home() {
                         scrollSnapType: 'x mandatory'
                     }}
                 >
-                    <style dangerouslySetInnerHTML={{__html: `
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
                         .hide-scrollbar::-webkit-scrollbar { display: none; }
                         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                     `}} />
-                    
+
                     {movies.map((movie, i) => (
-                        <motion.div 
+                        <motion.div
                             key={movie.MovieID}
                             initial={{ opacity: 0, x: 40 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true, margin: "0px 100px 0px 0px" }}
                             transition={{ delay: i * 0.05, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                            style={{ 
+                            style={{
                                 minWidth: '320px',
                                 width: '320px',
                                 cursor: 'pointer',
@@ -313,17 +314,17 @@ export default function Home() {
                                 const rect = e.currentTarget.getBoundingClientRect();
                                 const x = e.clientX - rect.left;
                                 const y = e.clientY - rect.top;
-                                
+
                                 const centerX = rect.width / 2;
                                 const centerY = rect.height / 2;
-                                
+
                                 const rotateX = ((y - centerY) / centerY) * -5;
                                 const rotateY = ((x - centerX) / centerX) * 5;
-                                
+
                                 const imgWrapper = e.currentTarget.querySelector('.poster-wrapper');
                                 imgWrapper.style.transition = 'none';
                                 imgWrapper.style.transform = `perspective(1000px) translateZ(20px) scale(1.04) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                                
+
                                 const shadowX = ((x - centerX) / centerX) * -10;
                                 const shadowY = ((y - centerY) / centerY) * -10;
                                 imgWrapper.style.boxShadow = `${shadowX}px ${shadowY + 30}px 50px rgba(0,0,0,0.15)`;
@@ -332,7 +333,7 @@ export default function Home() {
                                 const imgWrapper = e.currentTarget.querySelector('.poster-wrapper');
                                 const goldBorder = e.currentTarget.querySelector('.gold-border');
                                 const meta = e.currentTarget.querySelector('.poster-meta');
-                                
+
                                 imgWrapper.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
                                 goldBorder.style.opacity = '1';
                                 meta.style.transform = 'translateY(-5px)';
@@ -341,20 +342,20 @@ export default function Home() {
                                 const imgWrapper = e.currentTarget.querySelector('.poster-wrapper');
                                 const goldBorder = e.currentTarget.querySelector('.gold-border');
                                 const meta = e.currentTarget.querySelector('.poster-meta');
-                                
+
                                 imgWrapper.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
                                 imgWrapper.style.transform = 'perspective(1000px) translateZ(0) scale(1) rotateX(0) rotateY(0)';
                                 imgWrapper.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)';
-                                
+
                                 goldBorder.style.opacity = '0';
                                 meta.style.transform = 'translateY(0)';
                             }}
                         >
-                            <div 
+                            <div
                                 className="poster-wrapper"
-                                style={{ 
-                                    width: '100%', 
-                                    aspectRatio: '2/3', 
+                                style={{
+                                    width: '100%',
+                                    aspectRatio: '2/3',
                                     backgroundColor: 'var(--c-surface)',
                                     marginBottom: '1.5rem',
                                     boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
@@ -366,29 +367,29 @@ export default function Home() {
                                     transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                                 }}
                             >
-                                <img 
-                                    src={getPosterUrl(movie)} 
+                                <img
+                                    src={getPosterUrl(movie)}
                                     alt={movie.Title}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }}
                                 />
-                                
-                                <div 
+
+                                <div
                                     className="gold-border"
-                                    style={{ 
-                                        position: 'absolute', 
-                                        inset: '0.5rem', 
-                                        border: '2px solid var(--c-gold)', 
-                                        opacity: 0, 
+                                    style={{
+                                        position: 'absolute',
+                                        inset: '0.5rem',
+                                        border: '2px solid var(--c-gold)',
+                                        opacity: 0,
                                         transition: 'opacity 0.4s',
                                         borderRadius: '4px',
                                         pointerEvents: 'none'
-                                    }} 
+                                    }}
                                 />
                             </div>
-                            
-                            <div 
+
+                            <div
                                 className="poster-meta"
-                                style={{ 
+                                style={{
                                     display: 'flex', alignItems: 'flex-start', gap: '1rem',
                                     transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                                 }}
@@ -407,7 +408,7 @@ export default function Home() {
                             </div>
                         </motion.div>
                     ))}
-                    
+
                     <div style={{ minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <span className="font-sans" style={{ color: 'var(--c-text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                             END OF LIST
