@@ -123,7 +123,7 @@ exports.updateBooking = async (req, res, next) => {
         const params = [Status, bookingId];
         await pool.query(sql, params);
 
-        const executedSql = \`UPDATE BOOKING SET Status = '\${Status}' WHERE BookingID = \${bookingId};\`;
+        const executedSql = `UPDATE BOOKING SET Status = '${Status}' WHERE BookingID = ${bookingId};`;
 
         res.status(200).json({ message: 'Booking status updated successfully', sql: executedSql });
     } catch (error) {
@@ -137,7 +137,7 @@ exports.deleteBooking = async (req, res, next) => {
         const sql = 'DELETE FROM BOOKING WHERE BookingID = ?';
         await pool.query(sql, [bookingId]);
 
-        const executedSql = \`DELETE FROM BOOKING WHERE BookingID = \${bookingId};\`;
+        const executedSql = `DELETE FROM BOOKING WHERE BookingID = ${bookingId};`;
 
         res.status(200).json({ message: 'Booking deleted successfully', sql: executedSql });
     } catch (error) {

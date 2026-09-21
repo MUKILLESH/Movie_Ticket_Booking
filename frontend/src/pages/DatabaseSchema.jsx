@@ -6,7 +6,7 @@ import { Play, Square, ChevronRight, ChevronLeft, MessageCircle, ChevronDown } f
 const ProfessorNote = ({ text }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div style={{ marginTop: '2.5rem', background: '#FDFBF7', borderLeft: \`4px solid \${theme.burgundy}\`, borderRadius: '0 8px 8px 0', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+    <div style={{ marginTop: '2.5rem', background: '#FDFBF7', borderLeft: `4px solid ${theme.burgundy}`, borderRadius: '0 8px 8px 0', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '1rem 1.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: theme.charcoal, fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.05em', textAlign: 'left' }}
@@ -26,8 +26,8 @@ const ProfessorNote = ({ text }) => {
 };
 
 const CodeBlock = ({ language, code }) => (
-  <div style={{ background: theme.codeBg, borderRadius: '12px', border: \`1px solid \${theme.gold}40\`, overflow: 'hidden', margin: '1.5rem 0', boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
-    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1.5rem', fontSize: '0.75rem', color: theme.lightGold, letterSpacing: '0.1em', fontWeight: 600, borderBottom: \`1px solid \${theme.gold}20\` }}>
+  <div style={{ background: theme.codeBg, borderRadius: '12px', border: `1px solid ${theme.gold}40`, overflow: 'hidden', margin: '1.5rem 0', boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
+    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1.5rem', fontSize: '0.75rem', color: theme.lightGold, letterSpacing: '0.1em', fontWeight: 600, borderBottom: `1px solid ${theme.gold}20` }}>
       {language.toUpperCase()}
     </div>
     <pre style={{ margin: 0, padding: '1.5rem', overflowX: 'auto', color: '#e6e6e6', fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: 1.6 }}>
@@ -51,7 +51,7 @@ const SlideSection = ({ id, num, title, children, isPresenting, isActive }) => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: isPresenting ? 'center' : 'flex-start',
-        borderBottom: isPresenting ? 'none' : \`1px solid \${theme.border}\`
+        borderBottom: isPresenting ? 'none' : `1px solid ${theme.border}`
       }}
     >
       <div style={{ marginBottom: '3.5rem' }}>
@@ -103,7 +103,7 @@ const DatabaseSchema = () => {
     if (currentIndex > 0) scrollTo(TOC[currentIndex - 1].id);
   };
 
-  const FullSQLAppendix = \`CREATE DATABASE IF NOT EXISTS movie_ticket_booking;
+  const FullSQLAppendix = `CREATE DATABASE IF NOT EXISTS movie_ticket_booking;
 USE movie_ticket_booking;
 
 CREATE TABLE IF NOT EXISTS THEATRE (
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS MOVIE (
     ReleaseDate DATE
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS \\\`SHOW\\\` (
+CREATE TABLE IF NOT EXISTS \`SHOW\` (
     ShowID INT AUTO_INCREMENT PRIMARY KEY,
     ShowDate DATE NOT NULL,
     ShowTime TIME NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS BOOKING (
     CustomerID INT NOT NULL,
     ShowID INT NOT NULL,
     FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
-    FOREIGN KEY (ShowID) REFERENCES \\\`SHOW\\\`(ShowID) ON DELETE CASCADE
+    FOREIGN KEY (ShowID) REFERENCES \`SHOW\`(ShowID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS BOOKING_SEAT (
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS BOOKING_SEAT (
     SeatID INT NOT NULL,
     PRIMARY KEY (BookingID, SeatID),
     FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID) ON DELETE CASCADE,
-    FOREIGN KEY (ShowID) REFERENCES \\\`SHOW\\\`(ShowID) ON DELETE CASCADE,
+    FOREIGN KEY (ShowID) REFERENCES \`SHOW\`(ShowID) ON DELETE CASCADE,
     FOREIGN KEY (SeatID) REFERENCES SEAT(SeatID) ON DELETE CASCADE,
     UNIQUE (ShowID, SeatID)
 ) ENGINE=InnoDB;
@@ -190,9 +190,9 @@ CREATE TABLE IF NOT EXISTS PAYMENT (
     FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE INDEX idx_show_movie ON \\\`SHOW\\\`(MovieID);
-CREATE INDEX idx_show_screen ON \\\`SHOW\\\`(ScreenID);
-CREATE INDEX idx_show_date ON \\\`SHOW\\\`(ShowDate);
+CREATE INDEX idx_show_movie ON \`SHOW\`(MovieID);
+CREATE INDEX idx_show_screen ON \`SHOW\`(ScreenID);
+CREATE INDEX idx_show_date ON \`SHOW\`(ShowDate);
 CREATE INDEX idx_booking_customer ON BOOKING(CustomerID);
 CREATE INDEX idx_booking_show ON BOOKING(ShowID);
 CREATE INDEX idx_booking_seat_show_seat ON BOOKING_SEAT(ShowID, SeatID);
@@ -206,9 +206,9 @@ SELECT
         ELSE 'BOOKED'
     END AS Status
 FROM SEAT s
-JOIN \\\`SHOW\\\` sh ON s.ScreenID = sh.ScreenID
+JOIN \`SHOW\` sh ON s.ScreenID = sh.ScreenID
 LEFT JOIN BOOKING_SEAT bs ON s.SeatID = bs.SeatID AND sh.ShowID = bs.ShowID
-LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
+LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;`;
 
   return (
     <div style={{ backgroundColor: theme.bg, minHeight: '100vh', color: theme.charcoal, fontFamily: 'sans-serif', transition: 'all 0.5s ease', fontSize: isPresenting ? '1.1rem' : '1rem' }}>
@@ -217,8 +217,8 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
       <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000, display: 'flex', gap: '1rem' }}>
         {isPresenting && (
           <>
-            <button onClick={handlePrev} style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, padding: '1rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}><ChevronLeft color={theme.charcoal} /></button>
-            <button onClick={handleNext} style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, padding: '1rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}><ChevronRight color={theme.charcoal} /></button>
+            <button onClick={handlePrev} style={{ background: theme.surface, border: `1px solid ${theme.border}`, padding: '1rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}><ChevronLeft color={theme.charcoal} /></button>
+            <button onClick={handleNext} style={{ background: theme.surface, border: `1px solid ${theme.border}`, padding: '1rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}><ChevronRight color={theme.charcoal} /></button>
           </>
         )}
         <button 
@@ -231,7 +231,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
 
       {/* Editorial Hero */}
       {!isPresenting && (
-        <div style={{ paddingTop: '10rem', paddingBottom: '6rem', borderBottom: \`1px solid \${theme.border}\` }}>
+        <div style={{ paddingTop: '10rem', paddingBottom: '6rem', borderBottom: `1px solid ${theme.border}` }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 4rem' }}>
             <div style={{ color: theme.gold, fontWeight: 700, letterSpacing: '0.1em', fontSize: '0.85rem', marginBottom: '1.5rem' }}>DATABASE SYSTEM</div>
             <h1 className="font-serif" style={{ fontSize: '4.5rem', fontWeight: 400, color: theme.charcoal, lineHeight: 1.1, marginBottom: '2.5rem' }}>
@@ -241,7 +241,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
               "How CineTicket transforms its cinema booking model into a relational MySQL backend."
             </p>
             
-            <div style={{ display: 'flex', gap: '5rem', borderTop: \`1px solid \${theme.border}\`, paddingTop: '2.5rem' }}>
+            <div style={{ display: 'flex', gap: '5rem', borderTop: `1px solid ${theme.border}`, paddingTop: '2.5rem' }}>
               {[{l: 'DATABASE', v: 'MySQL'}, {l: 'BACKEND', v: 'Node.js / Express'}, {l: 'DRIVER', v: 'mysql2/promise'}, {l: 'MODEL', v: 'Relational Database'}].map(m => (
                 <div key={m.l}>
                   <div style={{ fontSize: '0.75rem', color: theme.textSecondary, letterSpacing: '0.1em', marginBottom: '0.5rem', fontWeight: 600 }}>{m.l}</div>
@@ -269,7 +269,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
                       textAlign: 'left', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', padding: '0.4rem 0', paddingLeft: '1rem', marginLeft: '-1rem',
                       color: activeSection === item.id ? theme.charcoal : theme.textSecondary,
                       fontWeight: activeSection === item.id ? 700 : 400,
-                      borderLeft: activeSection === item.id ? \`2px solid \${theme.gold}\` : '2px solid transparent',
+                      borderLeft: activeSection === item.id ? `2px solid ${theme.gold}` : '2px solid transparent',
                       transition: 'all 0.2s',
                       display: 'flex', gap: '0.75rem'
                     }}
@@ -292,10 +292,10 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
               The cinema booking system contains strictly structured entities: <strong>Movies, Theatres, Screens, Seats, Shows, Customers, and Bookings.</strong> These entities have inherent, unbreakable relationships. A seat cannot exist without a screen. A booking cannot exist without a customer. We chose a Relational Database (MySQL) because it enforces <strong>referential integrity</strong> via Foreign Keys, and supports robust <strong>concurrency control</strong> via ACID transactions, preventing double-booking disasters.
             </p>
             <h3 style={{ fontSize: '1.4rem', color: theme.charcoal, marginBottom: '1.5rem' }}>How Data Moves</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: theme.surface, padding: '4rem', borderRadius: '16px', border: \`1px solid \${theme.border}\` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: theme.surface, padding: '4rem', borderRadius: '16px', border: `1px solid ${theme.border}` }}>
               {['USER', 'REACT FRONTEND', 'NODE.JS / EXPRESS', 'MYSQL2 CONNECTION POOL', 'MYSQL DATABASE', 'RELATIONAL TABLES'].map((node, i) => (
                 <React.Fragment key={node}>
-                  <div style={{ background: theme.surface, border: \`1px solid \${theme.gold}50\`, padding: '1rem 3rem', borderRadius: '8px', fontWeight: 600, letterSpacing: '0.05em', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', width: '350px', textAlign: 'center' }}>{node}</div>
+                  <div style={{ background: theme.surface, border: `1px solid ${theme.gold}50`, padding: '1rem 3rem', borderRadius: '8px', fontWeight: 600, letterSpacing: '0.05em', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', width: '350px', textAlign: 'center' }}>{node}</div>
                   {i < 5 && <div style={{ height: '30px', width: '2px', background: theme.gold }}></div>}
                 </React.Fragment>
               ))}
@@ -308,7 +308,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               Before writing any SQL, we mapped out the real-world cinema domain into an Entity-Relationship (ER) model. This conceptual diagram identifies all actors and objects in the system.
             </p>
-            <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.gold}\`, borderRadius: '8px', marginBottom: '3rem', textAlign: 'center', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.gold}`, borderRadius: '8px', marginBottom: '3rem', textAlign: 'center', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                <span style={{ color: theme.textSecondary, letterSpacing: '0.1em' }}>[ ACTUAL CINETICKET ER DIAGRAM PLACEMENT ]</span>
             </div>
             
@@ -317,11 +317,11 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
               The conceptual model was then translated into a physical relational schema:
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-              <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+              <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
                 <strong style={{ color: theme.charcoal, display: 'block', marginBottom: '1rem' }}>1. ENTITIES → TABLES</strong>
                 <p style={{ color: theme.textSecondary, margin: 0 }}>Every solid entity (Theatre, Movie, Customer) became an independent MySQL table with an Auto-Increment Primary Key.</p>
               </div>
-              <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+              <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
                 <strong style={{ color: theme.charcoal, display: 'block', marginBottom: '1rem' }}>2. RELATIONSHIPS → FOREIGN KEYS</strong>
                 <p style={{ color: theme.textSecondary, margin: 0 }}>The lines connecting entities became Foreign Keys. M:N relationships (like Booking ↔ Seat) were resolved using Junction Tables.</p>
               </div>
@@ -339,13 +339,13 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
               <div>
                 <h4 style={{ color: theme.gold, marginBottom: '1.5rem', letterSpacing: '0.1em' }}>INDEPENDENT ENTITIES</h4>
                 {['THEATRE', 'MOVIE', 'CUSTOMER'].map((t, i) => (
-                  <div key={t} style={{ background: theme.surface, padding: '1rem 1.5rem', border: \`1px solid \${theme.border}\`, borderRadius: '8px', marginBottom: '1rem', fontWeight: 600 }}>{i+1}. {t}</div>
+                  <div key={t} style={{ background: theme.surface, padding: '1rem 1.5rem', border: `1px solid ${theme.border}`, borderRadius: '8px', marginBottom: '1rem', fontWeight: 600 }}>{i+1}. {t}</div>
                 ))}
               </div>
               <div>
                 <h4 style={{ color: theme.charcoal, marginBottom: '1.5rem', letterSpacing: '0.1em' }}>DEPENDENT ENTITIES</h4>
                 {['SCREEN (Depends on Theatre)', 'SHOW (Depends on Movie & Screen)', 'SEAT (Depends on Screen)', 'BOOKING (Depends on Customer & Show)', 'BOOKING_SEAT (Depends on Booking & Seat)', 'PAYMENT (Depends on Booking)'].map((t, i) => (
-                  <div key={t} style={{ background: theme.surface, padding: '1rem 1.5rem', border: \`1px solid \${theme.gold}50\`, borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                  <div key={t} style={{ background: theme.surface, padding: '1rem 1.5rem', border: `1px solid ${theme.gold}50`, borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>
                     <strong>{i+4}. {t.split('(')[0]}</strong> <span style={{ color: theme.textSecondary }}>({t.split('(')[1]}</span>
                   </div>
                 ))}
@@ -358,10 +358,10 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               The initialization of the backend begins with establishing the database context in MySQL.
             </p>
-            <CodeBlock language="SQL" code={\`CREATE DATABASE IF NOT EXISTS movie_ticket_booking;\\nUSE movie_ticket_booking;\`} />
+            <CodeBlock language="SQL" code={`CREATE DATABASE IF NOT EXISTS movie_ticket_booking;\\nUSE movie_ticket_booking;`} />
             <div style={{ display: 'grid', gap: '1rem', marginTop: '2rem' }}>
               {[{t:'CREATE DATABASE', d:'Instantiates the new database schema on the MySQL server.'},{t:'IF NOT EXISTS', d:'Prevents execution errors if the script is run multiple times (idempotency).'},{t:'USE', d:'Selects the database as the active context so subsequent table creations are placed inside it.'}].map(x=>(
-                <div key={x.t} style={{ display: 'grid', gridTemplateColumns: '200px 1fr', background: theme.surface, padding: '1.5rem', border: \`1px solid \${theme.border}\`, borderRadius: '8px', alignItems: 'center' }}>
+                <div key={x.t} style={{ display: 'grid', gridTemplateColumns: '200px 1fr', background: theme.surface, padding: '1.5rem', border: `1px solid ${theme.border}`, borderRadius: '8px', alignItems: 'center' }}>
                   <strong style={{ color: theme.charcoal }}>{x.t}</strong><span style={{ color: theme.textSecondary }}>{x.d}</span>
                 </div>
               ))}
@@ -374,7 +374,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
               Below is the complete, exact DDL (Data Definition Language) used to instantiate the 9 tables of the CineTicket backend.
             </p>
             {TABLES.map((table, i) => (
-              <div key={table.name} style={{ marginBottom: '5rem', paddingBottom: '4rem', borderBottom: i < TABLES.length - 1 ? \`1px solid \${theme.border}\` : 'none' }}>
+              <div key={table.name} style={{ marginBottom: '5rem', paddingBottom: '4rem', borderBottom: i < TABLES.length - 1 ? `1px solid ${theme.border}` : 'none' }}>
                 <div style={{ color: theme.gold, fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.5rem' }}>TABLE 0{i+1}</div>
                 <h3 style={{ fontSize: '2rem', color: theme.charcoal, margin: '0 0 1rem 0' }}>{table.name}</h3>
                 <p style={{ color: theme.textSecondary, fontSize: '1.1rem', marginBottom: '2rem' }}><strong>PURPOSE:</strong> {table.purpose}</p>
@@ -382,7 +382,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
                 <CodeBlock language="SQL" code={table.sql} />
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-                  <div style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, borderRadius: '8px', padding: '1.5rem' }}>
+                  <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '8px', padding: '1.5rem' }}>
                     <h4 style={{ margin: '0 0 1rem 0', color: theme.charcoal }}>COLUMN BREAKDOWN</h4>
                     <ul style={{ margin: 0, paddingLeft: '1.2rem', color: theme.textSecondary, fontSize: '0.95rem', lineHeight: 1.6 }}>
                       {table.columns.map((c, j) => (
@@ -390,7 +390,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
                       ))}
                     </ul>
                   </div>
-                  <div style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, borderRadius: '8px', padding: '1.5rem' }}>
+                  <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '8px', padding: '1.5rem' }}>
                     <h4 style={{ margin: '0 0 1rem 0', color: theme.charcoal }}>KEYS & RELATIONSHIPS</h4>
                     <div style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}><strong style={{ color: theme.gold }}>PK:</strong> {table.pk}</div>
                     <div style={{ marginBottom: '0.75rem', fontSize: '0.95rem' }}><strong style={{ color: theme.burgundy }}>FK:</strong> {table.fk}</div>
@@ -398,7 +398,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
                   </div>
                 </div>
                 
-                <div style={{ background: theme.bg, border: \`1px solid \${theme.border}\`, borderRadius: '8px', padding: '1.5rem', marginTop: '1.5rem' }}>
+                <div style={{ background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: '8px', padding: '1.5rem', marginTop: '1.5rem' }}>
                   <h4 style={{ margin: '0 0 0.5rem 0', color: theme.charcoal, fontSize: '0.9rem', letterSpacing: '0.05em' }}>BACKEND USAGE</h4>
                   <code style={{ color: theme.burgundy, fontSize: '0.9rem' }}>{table.usage}</code>
                 </div>
@@ -414,13 +414,13 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
               {TABLES.map(t => (
-                <div key={t.name} style={{ background: theme.surface, padding: '1.5rem', border: \`1px solid \${theme.border}\`, borderRadius: '8px', textAlign: 'center' }}>
+                <div key={t.name} style={{ background: theme.surface, padding: '1.5rem', border: `1px solid ${theme.border}`, borderRadius: '8px', textAlign: 'center' }}>
                   <div style={{ fontWeight: 700, color: theme.charcoal, marginBottom: '0.5rem' }}>{t.name}</div>
                   <div style={{ color: theme.gold, fontSize: '0.9rem', fontWeight: 600 }}>{t.pk.replace('Composite: ', '')}</div>
                 </div>
               ))}
             </div>
-            <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+            <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
               <h4 style={{ color: theme.charcoal, margin: '0 0 1rem 0' }}>Why AUTO_INCREMENT?</h4>
               <p style={{ color: theme.textSecondary, margin: 0, lineHeight: 1.6 }}>Instead of forcing our Node.js backend to query the database to find the highest ID and manually add 1 (which would cause race conditions), we let the MySQL engine handle ID generation natively at the point of insertion.</p>
             </div>
@@ -433,13 +433,13 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             </p>
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
                 {['SCREEN.TheatreID → THEATRE.TheatreID', 'SEAT.ScreenID → SCREEN.ScreenID', 'SHOW.MovieID → MOVIE.MovieID', 'SHOW.ScreenID → SCREEN.ScreenID', 'BOOKING.CustomerID → CUSTOMER.CustomerID', 'BOOKING.ShowID → SHOW.ShowID'].map(rel => (
-                  <div key={rel} style={{ background: theme.surface, padding: '1.5rem', border: \`1px solid \${theme.gold}50\`, borderRadius: '8px', textAlign: 'center', fontWeight: 600, color: theme.charcoal, fontSize: '0.85rem' }}>
+                  <div key={rel} style={{ background: theme.surface, padding: '1.5rem', border: `1px solid ${theme.gold}50`, borderRadius: '8px', textAlign: 'center', fontWeight: 600, color: theme.charcoal, fontSize: '0.85rem' }}>
                     {rel.split(' → ')[0]}<br/><span style={{ color: theme.burgundy, fontSize: '1.2rem', margin: '0.2rem 0', display: 'inline-block' }}>↓</span><br/>{rel.split(' → ')[1]}
                   </div>
                 ))}
              </div>
-             <CodeBlock language="SQL" code={\`FOREIGN KEY (TheatreID) REFERENCES THEATRE(TheatreID) ON DELETE CASCADE\`} />
-             <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+             <CodeBlock language="SQL" code={`FOREIGN KEY (TheatreID) REFERENCES THEATRE(TheatreID) ON DELETE CASCADE`} />
+             <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
                 <h4 style={{ color: theme.charcoal, margin: '0 0 1rem 0' }}>ON DELETE CASCADE</h4>
                 <p style={{ color: theme.textSecondary, margin: 0, lineHeight: 1.6 }}>We appended `ON DELETE CASCADE` to all foreign keys. If a theatre is permanently closed and deleted from the THEATRE table, MySQL will automatically cascade that deletion downward, removing all Screens and Seats associated with that theatre, ensuring no orphaned data is left behind.</p>
              </div>
@@ -459,7 +459,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
                 {c: 'ENUM', sql: 'Status ENUM(\'PENDING\', \'CONFIRMED\', \'FAILED\')', why: 'Restricts status strings to specific states, preventing typos from the backend.'},
                 {c: 'UNIQUE (COMPOSITE)', sql: 'UNIQUE (ScreenID, SeatNumber)', why: 'Ensures "Seat A1" only exists once inside a specific screen, but allows "Seat A1" to exist across multiple screens.'}
               ].map(con => (
-                 <div key={con.c} style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+                 <div key={con.c} style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
                     <h4 style={{ color: theme.gold, margin: '0 0 1rem 0' }}>{con.c}</h4>
                     <p style={{ color: theme.charcoal, margin: '0 0 1rem 0', fontSize: '0.95rem' }}>{con.why}</p>
                     <code style={{ background: theme.bg, padding: '0.5rem', borderRadius: '4px', fontSize: '0.85rem', color: theme.burgundy }}>{con.sql}</code>
@@ -470,7 +470,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
           </SlideSection>
 
           <SlideSection id="sec-09" num="09" title="DATA POPULATION" isPresenting={isPresenting} isActive={activeSection === 'sec-09'}>
-            <div style={{ background: theme.surface, padding: '4rem', textAlign: 'center', border: \`1px dashed \${theme.textSecondary}\`, borderRadius: '16px' }}>
+            <div style={{ background: theme.surface, padding: '4rem', textAlign: 'center', border: `1px dashed ${theme.textSecondary}`, borderRadius: '16px' }}>
               <div style={{ color: theme.textSecondary, fontSize: '1.2rem', fontStyle: 'italic' }}>
                 No automated database population / seed SQL was found in the documented implementation.
               </div>
@@ -487,7 +487,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             </p>
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 {CRUD.map(c => (
-                  <div key={c.title} style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, borderRadius: '12px', padding: '2.5rem', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                  <div key={c.title} style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '2.5rem', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
                     <h4 style={{ color: theme.charcoal, margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>{c.title}</h4>
                     <div style={{ color: theme.gold, fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', letterSpacing: '0.05em' }}>{c.endpoint}</div>
                     <p style={{ color: theme.textSecondary, fontSize: '1rem', margin: '0 0 1.5rem 0', lineHeight: 1.6 }}>{c.purpose}</p>
@@ -504,9 +504,9 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               Retrieving data for the frontend requires precise `SELECT` queries mapped to specific endpoints.
             </p>
-            <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+            <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
               <div style={{ color: theme.gold, fontWeight: 700, marginBottom: '1rem' }}>ENDPOINT: GET /api/movies</div>
-              <CodeBlock language="SQL" code={\`SELECT * FROM MOVIE WHERE MovieID = ?\`} />
+              <CodeBlock language="SQL" code={`SELECT * FROM MOVIE WHERE MovieID = ?`} />
               <div style={{ marginTop: '1.5rem', color: theme.charcoal, lineHeight: 1.6 }}>
                 <strong>SELECT:</strong> Fetches all columns for the specified movie.<br/>
                 <strong>FROM:</strong> Targets the MOVIE table.<br/>
@@ -526,13 +526,13 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`;
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '3rem', flexWrap: 'wrap' }}>
               {['BOOKING', 'CUSTOMER', 'SHOW', 'MOVIE', 'SCREEN', 'THEATRE'].map((t, i) => (
                 <React.Fragment key={t}>
-                  <div style={{ background: theme.surface, padding: '1rem 1.5rem', borderRadius: '30px', border: \`1px solid \${theme.gold}\`, fontWeight: 600, fontSize: '0.9rem' }}>{t}</div>
+                  <div style={{ background: theme.surface, padding: '1rem 1.5rem', borderRadius: '30px', border: `1px solid ${theme.gold}`, fontWeight: 600, fontSize: '0.9rem' }}>{t}</div>
                   {i < 5 && <div style={{ color: theme.burgundy }}>→</div>}
                 </React.Fragment>
               ))}
             </div>
 
-            <CodeBlock language="SQL" code={\`SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, c.Name as CustomerName,
+            <CodeBlock language="SQL" code={`SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, c.Name as CustomerName,
        s.ShowDate, s.ShowTime, m.Title as MovieTitle, t.Name as TheatreName, sc.ScreenNumber
 FROM BOOKING b
 JOIN CUSTOMER c ON b.CustomerID = c.CustomerID
@@ -540,14 +540,14 @@ JOIN \`SHOW\` s ON b.ShowID = s.ShowID
 JOIN MOVIE m ON s.MovieID = m.MovieID
 JOIN SCREEN sc ON s.ScreenID = sc.ScreenID
 JOIN THEATRE t ON sc.TheatreID = t.TheatreID
-WHERE b.BookingID = ?\`} />
+WHERE b.BookingID = ?`} />
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-               <div style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, padding: '1.5rem', borderRadius: '8px' }}>
+               <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, padding: '1.5rem', borderRadius: '8px' }}>
                  <strong style={{ color: theme.gold, display: 'block', marginBottom: '0.5rem' }}>INPUT</strong>
                  <div style={{ color: theme.charcoal }}>BookingID (e.g., 1042)</div>
                </div>
-               <div style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, padding: '1.5rem', borderRadius: '8px' }}>
+               <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, padding: '1.5rem', borderRadius: '8px' }}>
                  <strong style={{ color: theme.gold, display: 'block', marginBottom: '0.5rem' }}>OUTPUT</strong>
                  <div style={{ color: theme.charcoal }}>Customer name, Movie title, Show date/time, Theatre name, Screen #, Amount, Status.</div>
                </div>
@@ -568,7 +568,7 @@ WHERE b.BookingID = ?\`} />
               <div style={{ background: theme.charcoal, color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px' }}>VIEW</div>
             </div>
 
-            <CodeBlock language="SQL" code={\`CREATE OR REPLACE VIEW view_show_seats AS
+            <CodeBlock language="SQL" code={`CREATE OR REPLACE VIEW view_show_seats AS
 SELECT 
     s.SeatID,
     s.SeatNumber,
@@ -583,7 +583,7 @@ SELECT
 FROM SEAT s
 JOIN \`SHOW\` sh ON s.ScreenID = sh.ScreenID
 LEFT JOIN BOOKING_SEAT bs ON s.SeatID = bs.SeatID AND sh.ShowID = bs.ShowID
-LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`} />
+LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;`} />
             <ProfessorNote text="This is an excellent use of a LEFT JOIN. If we used an INNER JOIN, the database would only return seats that have already been booked. By using a LEFT JOIN, MySQL returns all seats. We then use a CASE statement to check if the 'booking_seat' ID is NULL. If it is NULL, it means no booking exists for that seat, so we label it 'AVAILABLE'." />
           </SlideSection>
 
@@ -591,7 +591,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`} />
              <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '3rem' }}>
               The end-to-end lifecycle of a ticket transaction traverses the presentation tier, application tier, and data tier.
             </p>
-             <div style={{ display: 'grid', gap: '0.75rem', background: theme.surface, padding: '3rem', borderRadius: '16px', border: \`1px solid \${theme.border}\` }}>
+             <div style={{ display: 'grid', gap: '0.75rem', background: theme.surface, padding: '3rem', borderRadius: '16px', border: `1px solid ${theme.border}` }}>
                 {[
                   'User selects movie and showtime on UI.',
                   'User views seat availability (Queries view_show_seats).',
@@ -620,7 +620,7 @@ LEFT JOIN BOOKING b ON bs.BookingID = b.BookingID;\`} />
             <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               A booking requires inserting data into multiple tables. If the `BOOKING` inserts successfully, but the `BOOKING_SEAT` insert fails (e.g., database crash), we are left with a corrupted partial booking. Transactions prevent this.
             </p>
-            <CodeBlock language="JAVASCRIPT" code={\`// backend/src/services/bookingService.js
+            <CodeBlock language="JAVASCRIPT" code={`// backend/src/services/bookingService.js
 const connection = await pool.getConnection();
 
 try {
@@ -644,7 +644,7 @@ try {
     throw error;
 } finally {
     connection.release();
-}\`} />
+}`} />
             <ProfessorNote text="We manage the transaction lifecycle inside Node.js. We open the transaction, run our queries, and if everything succeeds, we COMMIT. If ANY error is caught, we execute ROLLBACK, which instantly erases the pending data from the database as if the transaction never happened." />
           </SlideSection>
 
@@ -653,28 +653,28 @@ try {
              <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               If User A and User B both select Seat D6 and hit checkout at the exact same millisecond, they could theoretically both book the same seat. We prevent this using <strong>Pessimistic Row-Level Locking</strong>.
             </p>
-            <CodeBlock language="SQL" code={\`-- Executed inside the transaction:
+            <CodeBlock language="SQL" code={`-- Executed inside the transaction:
 SELECT SeatID, SeatType 
 FROM SEAT 
 WHERE SeatID IN (?, ?) AND ScreenID = ? 
 FOR UPDATE;  -- <--- The Lock
-\`} />
+`} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem' }}>
-               <div style={{ background: theme.surface, padding: '2rem', border: \`1px solid \${theme.gold}\`, borderRadius: '12px', textAlign: 'center' }}>
+               <div style={{ background: theme.surface, padding: '2rem', border: `1px solid ${theme.gold}`, borderRadius: '12px', textAlign: 'center' }}>
                   <h4 style={{ color: theme.gold, margin: '0 0 1rem 0', fontSize: '1.2rem' }}>USER A</h4>
                   <div>Selects Seat D6</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
                   <div>Transaction Begins</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
                   <div style={{ fontWeight: 600 }}>FOR UPDATE executes</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
-                  <div style={{ background: \`\${theme.gold}20\`, padding: '0.75rem', borderRadius:'8px', fontWeight: 600 }}>ROW IS LOCKED</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
+                  <div style={{ background: `${theme.gold}20`, padding: '0.75rem', borderRadius:'8px', fontWeight: 600 }}>ROW IS LOCKED</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
                   <div>Booking Inserted</div><div style={{ color: theme.burgundy, margin:'0.5rem 0' }}>↓</div>
                   <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>COMMIT</div>
                </div>
-               <div style={{ background: theme.surface, padding: '2rem', border: \`1px dashed \${theme.textSecondary}\`, borderRadius: '12px', textAlign: 'center', opacity: 0.8 }}>
+               <div style={{ background: theme.surface, padding: '2rem', border: `1px dashed ${theme.textSecondary}`, borderRadius: '12px', textAlign: 'center', opacity: 0.8 }}>
                   <h4 style={{ color: theme.charcoal, margin: '0 0 1rem 0', fontSize: '1.2rem' }}>USER B</h4>
                   <div>Selects Seat D6</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
                   <div>Transaction Begins</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
                   <div style={{ fontWeight: 600 }}>FOR UPDATE executes</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
-                  <div style={{ background: \`#eee\`, padding: '0.75rem', borderRadius:'8px', fontWeight: 600 }}>WAITS FOR LOCK</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
+                  <div style={{ background: `#eee`, padding: '0.75rem', borderRadius:'8px', fontWeight: 600 }}>WAITS FOR LOCK</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
                   <div>Lock released by User A</div><div style={{ color: theme.textSecondary, margin:'0.5rem 0' }}>↓</div>
                   <div style={{ fontWeight: 700, color: theme.burgundy, fontSize: '1.1rem' }}>SEAT UNAVAILABLE</div>
                </div>
@@ -686,17 +686,17 @@ FOR UPDATE;  -- <--- The Lock
              <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               While Row-Level Locking handles concurrent requests actively happening at the exact same time, we need a permanent, database-level defense to guarantee a seat is never double-booked.
             </p>
-            <CodeBlock language="SQL" code={\`CREATE TABLE BOOKING_SEAT (
+            <CodeBlock language="SQL" code={`CREATE TABLE BOOKING_SEAT (
     ...
     UNIQUE (ShowID, SeatID)
-);\`} />
-            <div style={{ background: theme.surface, padding: '3rem', borderRadius: '12px', border: \`1px solid \${theme.border}\`, marginTop: '2rem' }}>
+);`} />
+            <div style={{ background: theme.surface, padding: '3rem', borderRadius: '12px', border: `1px solid ${theme.border}`, marginTop: '2rem' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
                  <div style={{ fontWeight: 600, width: '180px' }}>SHOW 101 + SEAT A5</div>
                  <div style={{ color: theme.charcoal }}>First Booking</div>
                  <div style={{ color: '#2E7D32', fontWeight: 700, marginLeft: 'auto' }}>ALLOWED</div>
                </div>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', background: \`\${theme.burgundy}10\`, padding: '1rem', borderRadius: '8px', margin: '0 -1rem 1.5rem -1rem' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', background: `${theme.burgundy}10`, padding: '1rem', borderRadius: '8px', margin: '0 -1rem 1.5rem -1rem' }}>
                  <div style={{ fontWeight: 600, width: '180px' }}>SHOW 101 + SEAT A5</div>
                  <div style={{ color: theme.charcoal }}>Second Booking</div>
                  <div style={{ color: theme.burgundy, fontWeight: 700, marginLeft: 'auto' }}>REJECTED (ER_DUP_ENTRY)</div>
@@ -718,8 +718,8 @@ FOR UPDATE;  -- <--- The Lock
                 { l: 'I', name: 'ISOLATION', def: 'Concurrent processes don\'t interfere.', desc: 'Row-level locking (FOR UPDATE) ensures concurrent bookings for the same show do not interfere with each other or read dirty data.' },
                 { l: 'D', name: 'DURABILITY', def: 'Data survives crashes.', desc: 'Once connection.commit() succeeds, the booking is permanently saved to the Aiven MySQL SSDs, surviving any server crashes.' },
               ].map(p => (
-                <div key={p.l} style={{ background: theme.surface, padding: '2.5rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ fontSize: '3.5rem', color: \`\${theme.gold}30\`, fontWeight: 800, marginBottom: '-1.5rem', fontFamily: 'serif' }}>{p.l}</div>
+                <div key={p.l} style={{ background: theme.surface, padding: '2.5rem', border: `1px solid ${theme.border}`, borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '3.5rem', color: `${theme.gold}30`, fontWeight: 800, marginBottom: '-1.5rem', fontFamily: 'serif' }}>{p.l}</div>
                   <h4 style={{ fontSize: '1.3rem', color: theme.charcoal, margin: '0 0 0.5rem 0' }}>{p.name}</h4>
                   <div style={{ color: theme.gold, fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', letterSpacing: '0.05em' }}>{p.def.toUpperCase()}</div>
                   <p style={{ color: theme.textSecondary, lineHeight: 1.6, margin: 0, fontSize: '1.05rem' }}>{p.desc}</p>
@@ -730,18 +730,18 @@ FOR UPDATE;  -- <--- The Lock
           </SlideSection>
 
           <SlideSection id="sec-19" num="19" title="INDEXING" isPresenting={isPresenting} isActive={activeSection === 'sec-19'}>
-            <CodeBlock language="SQL" code={\`CREATE INDEX idx_show_movie ON \`SHOW\`(MovieID);
+            <CodeBlock language="SQL" code={`CREATE INDEX idx_show_movie ON \`SHOW\`(MovieID);
 CREATE INDEX idx_show_screen ON \`SHOW\`(ScreenID);
 CREATE INDEX idx_show_date ON \`SHOW\`(ShowDate);
 CREATE INDEX idx_booking_customer ON BOOKING(CustomerID);
 CREATE INDEX idx_booking_show ON BOOKING(ShowID);
-CREATE INDEX idx_booking_seat_show_seat ON BOOKING_SEAT(ShowID, SeatID);\`} />
+CREATE INDEX idx_booking_seat_show_seat ON BOOKING_SEAT(ShowID, SeatID);`} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem' }}>
-               <div style={{ background: theme.surface, padding: '2.5rem', border: \`1px solid \${theme.border}\`, borderRadius: '12px' }}>
+               <div style={{ background: theme.surface, padding: '2.5rem', border: `1px solid ${theme.border}`, borderRadius: '12px' }}>
                   <h4 style={{ color: theme.burgundy, marginBottom: '1rem', fontSize: '1.2rem' }}>WITHOUT INDEX</h4>
                   <p style={{ color: theme.textSecondary, lineHeight: 1.6, margin: 0 }}>MySQL must perform a <strong>Full Table Scan</strong>, checking every single row in the SHOW table sequentially to find which shows belong to MovieID 5.</p>
                </div>
-               <div style={{ background: theme.surface, padding: '2.5rem', border: \`1px solid \${theme.gold}\`, borderRadius: '12px' }}>
+               <div style={{ background: theme.surface, padding: '2.5rem', border: `1px solid ${theme.gold}`, borderRadius: '12px' }}>
                   <h4 style={{ color: theme.gold, marginBottom: '1rem', fontSize: '1.2rem' }}>WITH INDEX</h4>
                   <p style={{ color: theme.charcoal, lineHeight: 1.6, margin: 0 }}>MySQL uses a <strong>B-Tree structure</strong> to instantly locate all shows for MovieID 5, reducing query search time from O(N) to O(log N).</p>
                </div>
@@ -753,7 +753,7 @@ CREATE INDEX idx_booking_seat_show_seat ON BOOKING_SEAT(ShowID, SeatID);\`} />
             <p style={{ color: theme.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2rem' }}>
               The Express backend manages a Connection Pool to communicate with MySQL efficiently.
             </p>
-            <CodeBlock language="JAVASCRIPT" code={\`// backend/src/config/db.js
+            <CodeBlock language="JAVASCRIPT" code={`// backend/src/config/db.js
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
@@ -765,8 +765,8 @@ const pool = mysql.createPool({
     connectionLimit: 10,               
     queueLimit: 0,
     ssl: { rejectUnauthorized: false } 
-});\`} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0', marginTop: '3rem', borderLeft: \`2px solid \${theme.gold}\`, paddingLeft: '2rem' }}>
+});`} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0', marginTop: '3rem', borderLeft: `2px solid ${theme.gold}`, paddingLeft: '2rem' }}>
                <div style={{ marginBottom: '1.5rem' }}><strong style={{ color: theme.charcoal }}>REACT</strong> <span style={{ color: theme.textSecondary }}>→ HTTP POST</span></div>
                <div style={{ marginBottom: '1.5rem' }}><strong style={{ color: theme.charcoal }}>EXPRESS</strong> <span style={{ color: theme.textSecondary }}>→ router.post()</span></div>
                <div style={{ marginBottom: '1.5rem' }}><strong style={{ color: theme.charcoal }}>CONTROLLER</strong> <span style={{ color: theme.textSecondary }}>→ Extracts JSON body</span></div>
@@ -790,9 +790,9 @@ const pool = mysql.createPool({
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {QUESTIONS.map((q, i) => (
-                <details key={i} style={{ background: theme.surface, border: \`1px solid \${theme.border}\`, borderRadius: '8px', padding: '1.5rem', cursor: 'pointer' }}>
+                <details key={i} style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '8px', padding: '1.5rem', cursor: 'pointer' }}>
                   <summary style={{ fontWeight: 600, color: theme.charcoal, fontSize: '1.1rem', outline: 'none' }}>{q.q}</summary>
-                  <div style={{ marginTop: '1rem', color: theme.textSecondary, lineHeight: 1.6, paddingTop: '1rem', borderTop: \`1px solid \${theme.border}\` }}>{q.a}</div>
+                  <div style={{ marginTop: '1rem', color: theme.textSecondary, lineHeight: 1.6, paddingTop: '1rem', borderTop: `1px solid ${theme.border}` }}>{q.a}</div>
                 </details>
               ))}
             </div>

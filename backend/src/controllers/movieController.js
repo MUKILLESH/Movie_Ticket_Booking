@@ -47,8 +47,7 @@ exports.createMovie = async (req, res, next) => {
         const [result] = await pool.query(sql, params);
         
         // Construct the literal SQL string for demo purposes
-        const executedSql = \`INSERT INTO MOVIE (Title, Genre, Language, Duration, ReleaseDate) 
-VALUES ('\${Title}', '\${Genre}', '\${Language}', \${Duration}, '\${ReleaseDate}');\`;
+        const executedSql = `INSERT INTO MOVIE (Title, Genre, Language, Duration, ReleaseDate) \nVALUES ('${Title}', '${Genre}', '${Language}', ${Duration}, '${ReleaseDate}');`;
 
         res.status(201).json({ message: 'Movie created successfully', sql: executedSql, insertId: result.insertId });
     } catch (error) {
@@ -64,9 +63,7 @@ exports.updateMovie = async (req, res, next) => {
         const params = [Title, Genre, Language, Duration, ReleaseDate, movieId];
         await pool.query(sql, params);
 
-        const executedSql = \`UPDATE MOVIE 
-SET Title = '\${Title}', Genre = '\${Genre}', Language = '\${Language}', Duration = \${Duration}, ReleaseDate = '\${ReleaseDate}' 
-WHERE MovieID = \${movieId};\`;
+        const executedSql = `UPDATE MOVIE \nSET Title = '${Title}', Genre = '${Genre}', Language = '${Language}', Duration = ${Duration}, ReleaseDate = '${ReleaseDate}' \nWHERE MovieID = ${movieId};`;
 
         res.status(200).json({ message: 'Movie updated successfully', sql: executedSql });
     } catch (error) {
@@ -80,7 +77,7 @@ exports.deleteMovie = async (req, res, next) => {
         const sql = 'DELETE FROM MOVIE WHERE MovieID = ?';
         await pool.query(sql, [movieId]);
 
-        const executedSql = \`DELETE FROM MOVIE WHERE MovieID = \${movieId};\`;
+        const executedSql = `DELETE FROM MOVIE WHERE MovieID = ${movieId};`;
 
         res.status(200).json({ message: 'Movie deleted successfully', sql: executedSql });
     } catch (error) {

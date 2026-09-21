@@ -40,12 +40,12 @@ export const theme = {
     {
       name: 'THEATRE',
       purpose: 'Stores physical cinema locations.',
-      sql: \`CREATE TABLE IF NOT EXISTS THEATRE (
+      sql: `CREATE TABLE IF NOT EXISTS THEATRE (
       TheatreID INT AUTO_INCREMENT PRIMARY KEY,
       Name VARCHAR(100) NOT NULL,
       Location VARCHAR(255) NOT NULL,
       City VARCHAR(100) NOT NULL
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'TheatreID', desc: 'Unique auto-incrementing ID for each theatre.' },
         { name: 'Name, Location, City', desc: 'String fields to store the physical address details.' }
@@ -60,13 +60,13 @@ export const theme = {
     {
       name: 'SCREEN',
       purpose: 'Represents individual auditoriums inside a theatre.',
-      sql: \`CREATE TABLE IF NOT EXISTS SCREEN (
+      sql: `CREATE TABLE IF NOT EXISTS SCREEN (
       ScreenID INT AUTO_INCREMENT PRIMARY KEY,
       ScreenNumber VARCHAR(20) NOT NULL,
       SeatCapacity INT NOT NULL CHECK (SeatCapacity > 0),
       TheatreID INT NOT NULL,
       FOREIGN KEY (TheatreID) REFERENCES THEATRE(TheatreID) ON DELETE CASCADE
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'ScreenID', desc: 'Unique identifier for the screen.' },
         { name: 'ScreenNumber', desc: 'The physical label (e.g., "Screen 1", "IMAX").' },
@@ -82,14 +82,14 @@ export const theme = {
     {
       name: 'MOVIE',
       purpose: 'Stores metadata about the films.',
-      sql: \`CREATE TABLE IF NOT EXISTS MOVIE (
+      sql: `CREATE TABLE IF NOT EXISTS MOVIE (
       MovieID INT AUTO_INCREMENT PRIMARY KEY,
       Title VARCHAR(255) NOT NULL,
       Genre VARCHAR(100),
       Language VARCHAR(50),
       Duration INT NOT NULL CHECK (Duration > 0),
       ReleaseDate DATE
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'MovieID', desc: 'Unique film identifier.' },
         { name: 'Title', desc: 'The name of the movie.' },
@@ -105,7 +105,7 @@ export const theme = {
     {
       name: 'SHOW',
       purpose: 'Schedules a specific Movie on a specific Screen at a specific time.',
-      sql: \`CREATE TABLE IF NOT EXISTS \`SHOW\` (
+      sql: `CREATE TABLE IF NOT EXISTS \`SHOW\` (
       ShowID INT AUTO_INCREMENT PRIMARY KEY,
       ShowDate DATE NOT NULL,
       ShowTime TIME NOT NULL,
@@ -114,7 +114,7 @@ export const theme = {
       ScreenID INT NOT NULL,
       FOREIGN KEY (MovieID) REFERENCES MOVIE(MovieID) ON DELETE CASCADE,
       FOREIGN KEY (ScreenID) REFERENCES SCREEN(ScreenID) ON DELETE CASCADE
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'ShowID', desc: 'Unique schedule identifier.' },
         { name: 'ShowDate & ShowTime', desc: 'When the movie plays.' },
@@ -130,14 +130,14 @@ export const theme = {
     {
       name: 'SEAT',
       purpose: 'Represents an individual physical seat inside a screen.',
-      sql: \`CREATE TABLE IF NOT EXISTS SEAT (
+      sql: `CREATE TABLE IF NOT EXISTS SEAT (
       SeatID INT AUTO_INCREMENT PRIMARY KEY,
       SeatNumber VARCHAR(10) NOT NULL,
       SeatType ENUM('REGULAR', 'PREMIUM', 'VIP') NOT NULL DEFAULT 'REGULAR',
       ScreenID INT NOT NULL,
       FOREIGN KEY (ScreenID) REFERENCES SCREEN(ScreenID) ON DELETE CASCADE,
       UNIQUE (ScreenID, SeatNumber)
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'SeatID', desc: 'Unique global seat identifier.' },
         { name: 'SeatNumber', desc: 'The row/col label (e.g., "A1", "D6").' },
@@ -153,13 +153,13 @@ export const theme = {
     {
       name: 'CUSTOMER',
       purpose: 'Stores user account details.',
-      sql: \`CREATE TABLE IF NOT EXISTS CUSTOMER (
+      sql: `CREATE TABLE IF NOT EXISTS CUSTOMER (
       CustomerID INT AUTO_INCREMENT PRIMARY KEY,
       Name VARCHAR(100) NOT NULL,
       Email VARCHAR(100) NOT NULL UNIQUE,
       Phone VARCHAR(20),
       Password VARCHAR(255) NOT NULL
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'CustomerID', desc: 'Unique user ID.' },
         { name: 'Email', desc: 'Login credential.' },
@@ -175,7 +175,7 @@ export const theme = {
     {
       name: 'BOOKING',
       purpose: 'Records the overarching transaction of a user booking tickets for a show.',
-      sql: \`CREATE TABLE IF NOT EXISTS BOOKING (
+      sql: `CREATE TABLE IF NOT EXISTS BOOKING (
       BookingID INT AUTO_INCREMENT PRIMARY KEY,
       BookingDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       TotalAmount DECIMAL(10, 2) NOT NULL CHECK (TotalAmount >= 0),
@@ -184,7 +184,7 @@ export const theme = {
       ShowID INT NOT NULL,
       FOREIGN KEY (CustomerID) REFERENCES CUSTOMER(CustomerID) ON DELETE CASCADE,
       FOREIGN KEY (ShowID) REFERENCES \`SHOW\`(ShowID) ON DELETE CASCADE
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'BookingID', desc: 'Unique transaction ID.' },
         { name: 'BookingDate', desc: 'Exact timestamp of booking.' },
@@ -200,7 +200,7 @@ export const theme = {
     {
       name: 'BOOKING_SEAT',
       purpose: 'Junction table resolving the M:N relationship between BOOKING and SEAT. Crucial for preventing double bookings.',
-      sql: \`CREATE TABLE IF NOT EXISTS BOOKING_SEAT (
+      sql: `CREATE TABLE IF NOT EXISTS BOOKING_SEAT (
       BookingID INT NOT NULL,
       ShowID INT NOT NULL,
       SeatID INT NOT NULL,
@@ -209,7 +209,7 @@ export const theme = {
       FOREIGN KEY (ShowID) REFERENCES \`SHOW\`(ShowID) ON DELETE CASCADE,
       FOREIGN KEY (SeatID) REFERENCES SEAT(SeatID) ON DELETE CASCADE,
       UNIQUE (ShowID, SeatID)
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'BookingID', desc: 'Reference to the parent transaction.' },
         { name: 'ShowID', desc: 'Reference to the scheduled show.' },
@@ -225,7 +225,7 @@ export const theme = {
     {
       name: 'PAYMENT',
       purpose: 'Tracks financial transactions related to a booking.',
-      sql: \`CREATE TABLE IF NOT EXISTS PAYMENT (
+      sql: `CREATE TABLE IF NOT EXISTS PAYMENT (
       PaymentID INT AUTO_INCREMENT PRIMARY KEY,
       Amount DECIMAL(10, 2) NOT NULL CHECK (Amount >= 0),
       PaymentMode ENUM('UPI', 'CARD', 'NET_BANKING') NOT NULL,
@@ -233,7 +233,7 @@ export const theme = {
       BookingID INT NOT NULL UNIQUE,
       TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID) ON DELETE CASCADE
-  ) ENGINE=InnoDB;\`,
+  ) ENGINE=InnoDB;`,
       columns: [
         { name: 'PaymentID', desc: 'Unique payment record.' },
         { name: 'BookingID', desc: 'The booking this pays for.' }
@@ -253,34 +253,34 @@ export const theme = {
       purpose: 'Creates a new booking record when a user initiates a checkout.',
       endpoint: 'POST /api/bookings',
       table: 'BOOKING',
-      sql: \`INSERT INTO BOOKING (TotalAmount, Status, CustomerID, ShowID) 
-  VALUES (?, 'PENDING', ?, ?)\`
+      sql: `INSERT INTO BOOKING (TotalAmount, Status, CustomerID, ShowID) 
+  VALUES (?, 'PENDING', ?, ?)`
     },
     {
       title: 'READ',
       purpose: 'Fetches all shows to render the homepage movie grid.',
       endpoint: 'GET /api/shows',
       table: 'SHOW (joined with MOVIE)',
-      sql: \`SELECT s.ShowID, s.ShowDate, s.ShowTime, s.Price, m.Title AS MovieTitle
+      sql: `SELECT s.ShowID, s.ShowDate, s.ShowTime, s.Price, m.Title AS MovieTitle
   FROM \`SHOW\` s
-  JOIN MOVIE m ON s.MovieID = m.MovieID\`
+  JOIN MOVIE m ON s.MovieID = m.MovieID`
     },
     {
       title: 'UPDATE',
       purpose: 'Updates the booking status after a payment succeeds or fails.',
       endpoint: 'bookingService.js',
       table: 'BOOKING',
-      sql: \`UPDATE BOOKING 
+      sql: `UPDATE BOOKING 
   SET Status = 'CONFIRMED' 
-  WHERE BookingID = ?\`
+  WHERE BookingID = ?`
     },
     {
       title: 'DELETE',
       purpose: 'Deletes an old, failed pending booking. (Cascades to BOOKING_SEAT)',
       endpoint: 'Admin / Cleanup tasks',
       table: 'BOOKING',
-      sql: \`DELETE FROM BOOKING 
-  WHERE Status = 'FAILED' AND BookingDate < NOW() - INTERVAL 1 DAY\`
+      sql: `DELETE FROM BOOKING 
+  WHERE Status = 'FAILED' AND BookingDate < NOW() - INTERVAL 1 DAY`
     }
   ];
 

@@ -30,7 +30,7 @@ exports.createTheatre = async (req, res, next) => {
         const params = [Name, Location, City];
         const [result] = await pool.query(sql, params);
         
-        const executedSql = \`INSERT INTO THEATRE (Name, Location, City) VALUES ('\${Name}', '\${Location}', '\${City}');\`;
+        const executedSql = `INSERT INTO THEATRE (Name, Location, City) VALUES ('${Name}', '${Location}', '${City}');`;
 
         res.status(201).json({ message: 'Theatre created successfully', sql: executedSql, insertId: result.insertId });
     } catch (error) {
@@ -46,7 +46,7 @@ exports.updateTheatre = async (req, res, next) => {
         const params = [Name, Location, City, theatreId];
         await pool.query(sql, params);
 
-        const executedSql = \`UPDATE THEATRE SET Name = '\${Name}', Location = '\${Location}', City = '\${City}' WHERE TheatreID = \${theatreId};\`;
+        const executedSql = `UPDATE THEATRE SET Name = '${Name}', Location = '${Location}', City = '${City}' WHERE TheatreID = ${theatreId};`;
 
         res.status(200).json({ message: 'Theatre updated successfully', sql: executedSql });
     } catch (error) {
@@ -60,7 +60,7 @@ exports.deleteTheatre = async (req, res, next) => {
         const sql = 'DELETE FROM THEATRE WHERE TheatreID = ?';
         await pool.query(sql, [theatreId]);
 
-        const executedSql = \`DELETE FROM THEATRE WHERE TheatreID = \${theatreId};\`;
+        const executedSql = `DELETE FROM THEATRE WHERE TheatreID = ${theatreId};`;
 
         res.status(200).json({ message: 'Theatre deleted successfully', sql: executedSql });
     } catch (error) {
