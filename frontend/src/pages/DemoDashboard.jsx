@@ -18,6 +18,98 @@ export default function DemoDashboard() {
         status: 'ALLOWED',
         http: 200
     });
+
+    // Lab State
+    const [labTab, setLabTab] = useState('MOVIES');
+    const [labData, setLabData] = useState([]);
+    const [labModalOpen, setLabModalOpen] = useState(false);
+    const [labModalMode, setLabModalMode] = useState('ADD');
+    const [labFormData, setLabFormData] = useState({});
+    const [labSqlLog, setLabSqlLog] = useState(null);
+
+    useEffect(() => {
+        if (labTab === 'MOVIES') fetchMovies();
+        else if (labTab === 'THEATRES') fetchTheatres();
+        else if (labTab === 'BOOKINGS') fetchBookings();
+    }, [labTab]);
+
+    const fetchMovies = async () => {
+        try {
+            const res = await fetch(`${API_URL}/movies`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchTheatres = async () => {
+        try {
+            const res = await fetch(`${API_URL}/theatres`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchBookings = async () => {
+        try {
+            const res = await fetch(`${API_URL}/bookings`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    };
+
+    const handleLabSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            let endpoint = '';
+            let method = labModalMode === 'ADD' ? 'POST' : 'PUT';
+            
+            if (labTab === 'MOVIES') {
+                endpoint = labModalMode === 'ADD' ? `${API_URL}/movies` : `${API_URL}/movies/${labFormData.MovieID}`;
+            } else if (labTab === 'THEATRES') {
+                endpoint = labModalMode === 'ADD' ? `${API_URL}/theatres` : `${API_URL}/theatres/${labFormData.TheatreID}`;
+            } else if (labTab === 'BOOKINGS') {
+                endpoint = `${API_URL}/bookings/${labFormData.BookingID}`;
+            }
+            
+            const res = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(labFormData)
+            });
+            const data = await res.json();
+            
+            if (data.sql) setLabSqlLog(data.sql);
+            
+            setLabModalOpen(false);
+            
+            if (labTab === 'MOVIES') fetchMovies();
+            else if (labTab === 'THEATRES') fetchTheatres();
+            else if (labTab === 'BOOKINGS') fetchBookings();
+            
+            fetchStats();
+        } catch (err) { console.error(err); }
+    };
+
+    const handleLabDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this record?')) return;
+        try {
+            let endpoint = '';
+            if (labTab === 'MOVIES') endpoint = `${API_URL}/movies/${id}`;
+            else if (labTab === 'THEATRES') endpoint = `${API_URL}/theatres/${id}`;
+            else if (labTab === 'BOOKINGS') endpoint = `${API_URL}/bookings/${id}`;
+            
+            const res = await fetch(endpoint, { method: 'DELETE' });
+            const data = await res.json();
+            
+            if (data.sql) setLabSqlLog(data.sql);
+            
+            if (labTab === 'MOVIES') fetchMovies();
+            else if (labTab === 'THEATRES') fetchTheatres();
+            else if (labTab === 'BOOKINGS') fetchBookings();
+            
+            fetchStats();
+        } catch (err) { console.error(err); }
+    };
     
     useEffect(() => {
         fetchStats();
@@ -425,6 +517,222 @@ export default function DemoDashboard() {
                     </div>
                 </motion.div>
             )}
+
+            {/* DATABASE MANIPULATION LAB */}
+            <h3 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--c-text-primary)' }}>Database Manipulation Lab</h3>
+            <p className="font-sans" style={{ color: 'var(--c-text-secondary)', marginBottom: '2rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                Use SQL-backed controls to demonstrate how records can be inserted, updated, and deleted from the CineTicket database.
+            </p>
+
+            <div style={{ border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', marginBottom: '4rem' }}>
+                {/* Tabs */}
+                <div style={{ display: 'flex', borderBottom: '1px solid rgba(176,138,62,0.2)' }}>
+                    {['MOVIES', 'THEATRES', 'BOOKINGS'].map((tab, idx) => (
+                        <button 
+                            key={tab}
+                            onClick={() => { setLabTab(tab); setLabSqlLog(null); }}
+                            className="font-mono"
+                            style={{
+                                padding: '1.5rem 2rem',
+                                background: labTab === tab ? 'rgba(176,138,62,0.05)' : 'transparent',
+                                border: 'none',
+                                borderBottom: labTab === tab ? '2px solid var(--c-gold)' : '2px solid transparent',
+                                color: labTab === tab ? 'var(--c-gold)' : 'var(--c-text-muted)',
+                                fontSize: '0.75rem',
+                                letterSpacing: '0.15em',
+                                textTransform: 'uppercase',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                flex: 1,
+                                transition: 'all 0.3s'
+                            }}
+                        >
+                            0{idx + 1} — {tab === 'BOOKINGS' ? 'BOOKINGS & SEATS' : tab}
+                        </button>
+                    ))}
+                </div>
+
+                <div style={{ padding: '3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                        <h4 className="font-serif" style={{ fontSize: '1.5rem', margin: 0, color: 'var(--c-text-primary)', textTransform: 'uppercase' }}>
+                            {labTab} TABLE
+                        </h4>
+                        {labTab !== 'BOOKINGS' && (
+                            <button 
+                                onClick={() => { setLabModalMode('ADD'); setLabFormData({}); setLabModalOpen(true); }}
+                                className="font-sans"
+                                style={{ 
+                                    background: 'var(--c-gold)', 
+                                    border: 'none',
+                                    color: 'var(--c-surface)',
+                                    fontSize: '0.75rem',
+                                    padding: '0.75rem 1.5rem',
+                                    letterSpacing: '0.1em',
+                                    textTransform: 'uppercase',
+                                    cursor: 'pointer',
+                                    borderRadius: '4px',
+                                    fontWeight: 600
+                                }}
+                            >
+                                + ADD {labTab.slice(0, -1)}
+                            </button>
+                        )}
+                    </div>
+
+                    <div style={{ overflowX: 'auto', marginBottom: '2rem' }}>
+                        {labData && labData.length > 0 ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                    <tr>
+                                        {Object.keys(labData[0]).map(key => (
+                                            <th key={key} className="font-mono" style={{ padding: '1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600 }}>
+                                                {key}
+                                            </th>
+                                        ))}
+                                        <th className="font-mono" style={{ padding: '1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600, textAlign: 'right' }}>
+                                            ACTIONS
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {labData.map((row, i) => (
+                                        <tr key={i}>
+                                            {Object.values(row).map((val, j) => {
+                                                let displayVal = String(val ?? '');
+                                                if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
+                                                    displayVal = val.split('T')[0];
+                                                }
+                                                return (
+                                                    <td key={j} className="font-sans" style={{ padding: '1rem', color: 'var(--c-text-primary)', fontSize: '0.85rem', borderBottom: '1px solid rgba(176,138,62,0.1)' }}>
+                                                        {displayVal}
+                                                    </td>
+                                                );
+                                            })}
+                                            <td style={{ padding: '1rem', borderBottom: '1px solid rgba(176,138,62,0.1)', textAlign: 'right' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                    <button 
+                                                        onClick={() => { setLabModalMode('EDIT'); setLabFormData({...row}); setLabModalOpen(true); }}
+                                                        style={{ background: 'transparent', border: '1px solid var(--c-gold)', color: 'var(--c-gold)', padding: '0.25rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleLabDelete(row.MovieID || row.TheatreID || row.BookingID)}
+                                                        style={{ background: 'transparent', border: '1px solid var(--c-burgundy)', color: 'var(--c-burgundy)', padding: '0.25rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="font-sans" style={{ padding: '2rem', textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '0.85rem' }}>
+                                No records found.
+                            </div>
+                        )}
+                    </div>
+
+                    <AnimatePresence>
+                        {labSqlLog && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                style={{ overflow: 'hidden' }}
+                            >
+                                <div style={{ padding: '1.5rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface-warm)', borderRadius: '8px', borderLeft: '4px solid var(--c-gold)' }}>
+                                    <div className="font-sans" style={{ color: 'var(--c-text-secondary)', fontSize: '0.75rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 600 }}>
+                                        SQL OPERATION EXECUTED
+                                    </div>
+                                    <pre className="font-mono" style={{ color: 'var(--c-gold-dark)', fontSize: '0.8rem', overflowX: 'auto', margin: 0, whiteSpace: 'pre-wrap', fontWeight: 600 }}>
+                                        {labSqlLog}
+                                    </pre>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            {/* Modal for ADD / EDIT */}
+            <AnimatePresence>
+                {labModalOpen && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(23, 23, 23, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            style={{ background: 'var(--c-bg-main)', padding: '3rem', borderRadius: '12px', width: '100%', maxWidth: '500px', border: '1px solid rgba(176,138,62,0.3)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+                        >
+                            <h3 className="font-serif" style={{ fontSize: '1.8rem', marginBottom: '2rem', color: 'var(--c-text-primary)' }}>
+                                {labModalMode} {labTab.slice(0, -1)}
+                            </h3>
+                            <form onSubmit={handleLabSubmit}>
+                                {labTab === 'MOVIES' && (
+                                    <>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Title</label>
+                                            <input required type="text" value={labFormData.Title || ''} onChange={e => setLabFormData({...labFormData, Title: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Genre</label>
+                                            <input required type="text" value={labFormData.Genre || ''} onChange={e => setLabFormData({...labFormData, Genre: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Language</label>
+                                            <input required type="text" value={labFormData.Language || ''} onChange={e => setLabFormData({...labFormData, Language: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Duration (mins)</label>
+                                            <input required type="number" value={labFormData.Duration || ''} onChange={e => setLabFormData({...labFormData, Duration: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '2rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Release Date</label>
+                                            <input required type="date" value={labFormData.ReleaseDate ? labFormData.ReleaseDate.split('T')[0] : ''} onChange={e => setLabFormData({...labFormData, ReleaseDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                    </>
+                                )}
+                                {labTab === 'THEATRES' && (
+                                    <>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Name</label>
+                                            <input required type="text" value={labFormData.Name || ''} onChange={e => setLabFormData({...labFormData, Name: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Location</label>
+                                            <input required type="text" value={labFormData.Location || ''} onChange={e => setLabFormData({...labFormData, Location: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                        <div style={{ marginBottom: '2rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>City</label>
+                                            <input required type="text" value={labFormData.City || ''} onChange={e => setLabFormData({...labFormData, City: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                        </div>
+                                    </>
+                                )}
+                                {labTab === 'BOOKINGS' && (
+                                    <>
+                                        <div style={{ marginBottom: '2rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Status</label>
+                                            <select required value={labFormData.Status || ''} onChange={e => setLabFormData({...labFormData, Status: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }}>
+                                                <option value="PENDING">PENDING</option>
+                                                <option value="CONFIRMED">CONFIRMED</option>
+                                                <option value="CANCELLED">CANCELLED</option>
+                                                <option value="FAILED">FAILED</option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                    <button type="button" onClick={() => setLabModalOpen(false)} style={{ padding: '0.75rem 1.5rem', background: 'transparent', border: '1px solid rgba(176,138,62,0.2)', color: 'var(--c-text-muted)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Cancel</button>
+                                    <button type="submit" style={{ padding: '0.75rem 1.5rem', background: 'var(--c-gold)', border: 'none', color: 'var(--c-surface)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>{labModalMode === 'ADD' ? 'Insert' : 'Update'}</button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* SQL Explorer */}
             <h3 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--c-text-primary)' }}>Query Explorer</h3>

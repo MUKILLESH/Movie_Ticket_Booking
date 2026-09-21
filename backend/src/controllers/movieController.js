@@ -37,3 +37,53 @@ exports.getShowsByMovie = async (req, res, next) => {
         next(error);
     }
 };
+
+// CRUD for Demo Lab
+exports.createMovie = async (req, res, next) => {
+    try {
+        const { Title, Genre, Language, Duration, ReleaseDate } = req.body;
+        const sql = 'INSERT INTO MOVIE (Title, Genre, Language, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?)';
+        const params = [Title, Genre, Language, Duration, ReleaseDate];
+        const [result] = await pool.query(sql, params);
+        
+        // Construct the literal SQL string for demo purposes
+        const executedSql = \`INSERT INTO MOVIE (Title, Genre, Language, Duration, ReleaseDate) 
+VALUES ('\${Title}', '\${Genre}', '\${Language}', \${Duration}, '\${ReleaseDate}');\`;
+
+        res.status(201).json({ message: 'Movie created successfully', sql: executedSql, insertId: result.insertId });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateMovie = async (req, res, next) => {
+    try {
+        const movieId = req.params.id;
+        const { Title, Genre, Language, Duration, ReleaseDate } = req.body;
+        const sql = 'UPDATE MOVIE SET Title = ?, Genre = ?, Language = ?, Duration = ?, ReleaseDate = ? WHERE MovieID = ?';
+        const params = [Title, Genre, Language, Duration, ReleaseDate, movieId];
+        await pool.query(sql, params);
+
+        const executedSql = \`UPDATE MOVIE 
+SET Title = '\${Title}', Genre = '\${Genre}', Language = '\${Language}', Duration = \${Duration}, ReleaseDate = '\${ReleaseDate}' 
+WHERE MovieID = \${movieId};\`;
+
+        res.status(200).json({ message: 'Movie updated successfully', sql: executedSql });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteMovie = async (req, res, next) => {
+    try {
+        const movieId = req.params.id;
+        const sql = 'DELETE FROM MOVIE WHERE MovieID = ?';
+        await pool.query(sql, [movieId]);
+
+        const executedSql = \`DELETE FROM MOVIE WHERE MovieID = \${movieId};\`;
+
+        res.status(200).json({ message: 'Movie deleted successfully', sql: executedSql });
+    } catch (error) {
+        next(error);
+    }
+};

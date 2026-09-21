@@ -13,4 +13,9 @@ router.get('/:bookingId', bookingController.getBookingById);
 // Get bookings for a customer (moved from customer routes for simplicity)
 router.get('/customer/:customerId', bookingController.getCustomersBookings);
 
+// CRUD operations for Demo Lab
+router.get('/', bookingController.getAllBookings);
+router.put('/:id', bookingController.updateBooking);
+router.delete('/:id', bookingController.deleteBooking);
+
 module.exports = router;

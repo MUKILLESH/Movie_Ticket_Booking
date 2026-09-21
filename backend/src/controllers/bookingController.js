@@ -97,3 +97,50 @@ exports.getCustomersBookings = async (req, res, next) => {
         next(error);
     }
 };
+
+// CRUD for Demo Lab
+exports.getAllBookings = async (req, res, next) => {
+    try {
+        const [bookings] = await pool.query(`
+            SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, c.Name as CustomerName, m.Title as MovieTitle
+            FROM BOOKING b
+            JOIN CUSTOMER c ON b.CustomerID = c.CustomerID
+            JOIN \`SHOW\` s ON b.ShowID = s.ShowID
+            JOIN MOVIE m ON s.MovieID = m.MovieID
+            ORDER BY b.BookingDate DESC
+        `);
+        res.status(200).json(bookings);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateBooking = async (req, res, next) => {
+    try {
+        const bookingId = req.params.id;
+        const { Status } = req.body;
+        const sql = 'UPDATE BOOKING SET Status = ? WHERE BookingID = ?';
+        const params = [Status, bookingId];
+        await pool.query(sql, params);
+
+        const executedSql = \`UPDATE BOOKING SET Status = '\${Status}' WHERE BookingID = \${bookingId};\`;
+
+        res.status(200).json({ message: 'Booking status updated successfully', sql: executedSql });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteBooking = async (req, res, next) => {
+    try {
+        const bookingId = req.params.id;
+        const sql = 'DELETE FROM BOOKING WHERE BookingID = ?';
+        await pool.query(sql, [bookingId]);
+
+        const executedSql = \`DELETE FROM BOOKING WHERE BookingID = \${bookingId};\`;
+
+        res.status(200).json({ message: 'Booking deleted successfully', sql: executedSql });
+    } catch (error) {
+        next(error);
+    }
+};
