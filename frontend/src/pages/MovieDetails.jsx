@@ -2,15 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fetchMovie, fetchShowsForMovie } from '../services/api';
+import { getMoviePosterUrl } from '../utils/helpers';
 import { format, parseISO } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
-
-const FALLBACK_IMAGES = [
-    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
-    'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&q=80',
-    'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&q=80'
-];
 
 export default function MovieDetails() {
     const { id } = useParams();
@@ -32,13 +26,7 @@ export default function MovieDetails() {
             });
     }, [id]);
 
-    const getPosterUrl = (movie) => {
-        if (movie?.PosterURL && !movie.PosterURL.includes('source.unsplash.com')) {
-            return movie.PosterURL;
-        }
-        const idNum = parseInt(id) || 0;
-        return FALLBACK_IMAGES[idNum % FALLBACK_IMAGES.length];
-    };
+
 
     if (loading) return null;
     if (!movie) return <div style={{ textAlign: 'center', padding: '10rem', color: 'var(--c-text-primary)' }}>Movie not found</div>;
@@ -49,7 +37,7 @@ export default function MovieDetails() {
         return acc;
     }, {});
 
-    const posterUrl = getPosterUrl(movie);
+    const posterUrl = getMoviePosterUrl(movie, parseInt(id));
 
     return (
         <motion.div 

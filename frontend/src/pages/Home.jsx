@@ -7,25 +7,11 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { fetchMovies } from '../services/api';
+import { getMoviePosterUrl } from '../utils/helpers';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================
-// CONSTANTS
-// ============================================================
-
-const FALLBACK_POSTERS = [
-    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
-    'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&q=80',
-    'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&q=80'
-];
-
-function getPosterUrl(movie) {
-    if (movie.PosterURL && !movie.PosterURL.includes('source.unsplash.com')) return movie.PosterURL;
-    return FALLBACK_POSTERS[(movie.Title || '').length % FALLBACK_POSTERS.length];
-}
-
 // ============================================================
 // PROGRAMMATIC TEXTURES
 // ============================================================
@@ -726,7 +712,7 @@ export default function Home() {
                                 border: '1px solid rgba(176,138,62,0.15)', transformStyle: 'preserve-3d',
                                 transition: 'transform 0.6s cubic-bezier(0.16,1,0.3,1)'
                             }}>
-                                <img src={getPosterUrl(movie)} alt={movie.Title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
+                                <img src={getMoviePosterUrl(movie, i)} alt={movie.Title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
                                 <div className="gold-border" style={{ position: 'absolute', inset: '0.5rem', border: '2px solid var(--c-gold)', opacity: 0, transition: 'opacity 0.4s', borderRadius: '4px', pointerEvents: 'none' }} />
                             </div>
                             <div className="poster-meta" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)' }}>

@@ -2,15 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, QrCode } from 'lucide-react';
+import { getMoviePosterUrl } from '../utils/helpers';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-const FALLBACK_IMAGES = [
-    'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
-    'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&q=80',
-    'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&q=80'
-];
 
 export default function BookingConfirmation() {
     const { bookingId } = useParams();
@@ -30,10 +24,7 @@ export default function BookingConfirmation() {
             });
     }, [bookingId]);
 
-    const getPosterUrl = (movieTitle) => {
-        const idNum = movieTitle ? movieTitle.length : 0;
-        return FALLBACK_IMAGES[idNum % FALLBACK_IMAGES.length];
-    };
+
 
     if (loading) return null;
     
@@ -41,7 +32,7 @@ export default function BookingConfirmation() {
 
     const dateStr = booking.ShowDate.split('T')[0];
     const timeStr = booking.ShowTime.substring(0,5);
-    const posterUrl = getPosterUrl(booking.MovieTitle);
+    const posterUrl = getMoviePosterUrl({ Title: booking.MovieTitle });
 
     return (
         <motion.div 
