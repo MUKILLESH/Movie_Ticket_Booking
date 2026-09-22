@@ -51,6 +51,9 @@ function Navbar() {
 
   const isDemo = location.pathname === '/demo';
   const isSqlConsole = location.pathname === '/sql-console' || location.pathname === '/query-console' || location.pathname === '/sql-runner';
+  
+  // Hide global navbar on Seat Selection page as it has its own custom layout
+  if (location.pathname.includes('/seats')) return null;
 
   return (
     <motion.nav 
