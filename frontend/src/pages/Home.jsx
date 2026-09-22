@@ -171,21 +171,34 @@ function createRingShape(outerR, innerR) {
 }
 
 function createFilmStripCurve() {
-    return new THREE.CatmullRomCurve3([
-        new THREE.Vector3(1.4, -2.45, 0.1),
-        new THREE.Vector3(3.0, -3.8, 0.65),
-        new THREE.Vector3(5.5, -4.1, 0.3),
-        new THREE.Vector3(7.8, -3.2, -0.4),
-        new THREE.Vector3(9.5, -2.2, -1.1),
-    ], false, 'catmullrom', 0.5);
+    const R = 2.35;
+    const theta = -Math.PI / 3; // 5 o'clock position
+    const p0 = new THREE.Vector3(R * Math.cos(theta), R * Math.sin(theta), 0);
+    
+    // Tangent direction for CCW unwinding (points right and up)
+    const t0 = new THREE.Vector3(-Math.sin(theta), Math.cos(theta), 0).normalize();
+    
+    // Control points for a natural, gravity-affected physical curve
+    const p1 = p0.clone().add(t0.clone().multiplyScalar(1.8));
+    const p2 = new THREE.Vector3(5.5, -3.5, 0.5);
+    const p3 = new THREE.Vector3(9.5, -4.5, 1.2);
+    
+    return new THREE.CubicBezierCurve3(p0, p1, p2, p3);
 }
 
 function createFilmStripShape() {
     const s = new THREE.Shape();
-    const hw = 0.88, ht = 0.005;
-    s.moveTo(-hw, -ht); s.lineTo(hw, -ht);
-    s.lineTo(hw, ht); s.lineTo(-hw, ht);
+    // Width must exactly match the wound film depth (0.75 total)
+    const hw = 0.375; 
+    const ht = 0.005; // physical thickness
+    
+    // Draw along Y to align with the Z binormal, keeping texture UV sequence intact
+    s.moveTo(ht, -hw);
+    s.lineTo(ht, hw);
+    s.lineTo(-ht, hw);
+    s.lineTo(-ht, -hw);
     s.closePath();
+    
     return s;
 }
 
@@ -351,6 +364,9 @@ function FilmReelAssembly() {
             <mesh position={[0, 0, -(HD - 0.07)]} rotation={[0, Math.PI, 0]} material={filmEndMat}>
                 <ringGeometry args={[1.42, 2.35, 96]} />
             </mesh>
+
+            {/* ======= FILM STRIP (Attached to Reel) ======= */}
+            <FilmStrip35mm />
         </group>
     );
 }
@@ -470,8 +486,6 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
                 <group ref={reelGroupRef}>
                     <FilmReelAssembly />
                 </group>
-
-                <FilmStrip35mm />
 
                 <ContactShadows position={[0, -4.0, 0]} opacity={0.18} scale={18}
                     blur={4.0} far={10} resolution={256} color="#1a1208" />
