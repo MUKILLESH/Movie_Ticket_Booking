@@ -35,7 +35,6 @@ export default function DemoDashboard() {
         else if (labTab === 'THEATRES') fetchTheatres();
         else if (labTab === 'BOOKINGS') fetchBookings();
         else if (labTab === 'SHOWS') fetchShows();
-        else if (labTab === 'BOOKED SEATS') fetchBookedSeats();
     }, [labTab]);
 
     const fetchMovies = async () => {
@@ -70,14 +69,6 @@ export default function DemoDashboard() {
         } catch (e) { console.error(e); }
     };
 
-    const fetchBookedSeats = async () => {
-        try {
-            const res = await fetch(`${API_URL}/booked-seats`);
-            const data = await res.json();
-            setLabData(data);
-        } catch (e) { console.error(e); }
-    };
-
     const escapeSql = (str) => {
         if (typeof str !== 'string') return str;
         return str.replace(/'/g, "''");
@@ -91,13 +82,11 @@ export default function DemoDashboard() {
             else if (labTab === 'THEATRES') sql = `INSERT INTO THEATRE (Name, Location, City) VALUES ('${escapeSql(labFormData.Name)}', '${escapeSql(labFormData.Location)}', '${escapeSql(labFormData.City)}');`;
             else if (labTab === 'BOOKINGS') sql = `INSERT INTO BOOKING (Status) VALUES ('${escapeSql(labFormData.Status)}');`;
             else if (labTab === 'SHOWS') sql = `INSERT INTO \`SHOW\` (ShowDate, ShowTime, Price, MovieID, ScreenID) VALUES ('${escapeSql(labFormData.ShowDate)}', '${escapeSql(labFormData.ShowTime)}', ${labFormData.Price}, ${labFormData.MovieID}, ${labFormData.ScreenID});`;
-            else if (labTab === 'BOOKED SEATS') sql = `INSERT INTO BOOKING_SEAT (BookingID, SeatID, PriceAtBooking) VALUES (${labFormData.BookingID}, ${labFormData.SeatID}, ${labFormData.PriceAtBooking});`;
         } else {
             if (labTab === 'MOVIES') sql = `UPDATE MOVIE SET Title = '${escapeSql(labFormData.Title)}', Genre = '${escapeSql(labFormData.Genre)}', Language = '${escapeSql(labFormData.Language)}', Duration = ${labFormData.Duration}, ReleaseDate = '${labFormData.ReleaseDate}' WHERE MovieID = ${labFormData.MovieID};`;
             else if (labTab === 'THEATRES') sql = `UPDATE THEATRE SET Name = '${escapeSql(labFormData.Name)}', Location = '${escapeSql(labFormData.Location)}', City = '${escapeSql(labFormData.City)}' WHERE TheatreID = ${labFormData.TheatreID};`;
             else if (labTab === 'BOOKINGS') sql = `UPDATE BOOKING SET Status = '${escapeSql(labFormData.Status)}' WHERE BookingID = ${labFormData.BookingID};`;
             else if (labTab === 'SHOWS') sql = `UPDATE \`SHOW\` SET ShowDate = '${escapeSql(labFormData.ShowDate)}', ShowTime = '${escapeSql(labFormData.ShowTime)}', Price = ${labFormData.Price}, MovieID = ${labFormData.MovieID}, ScreenID = ${labFormData.ScreenID} WHERE ShowID = ${labFormData.ShowID};`;
-            else if (labTab === 'BOOKED SEATS') sql = `UPDATE BOOKING_SEAT SET PriceAtBooking = ${labFormData.PriceAtBooking} WHERE BookingID = ${labFormData.BookingID} AND SeatID = ${labFormData.SeatID};`;
         }
         
         setRawSqlText(sql);
@@ -111,10 +100,6 @@ export default function DemoDashboard() {
         else if (labTab === 'THEATRES') sql = `DELETE FROM THEATRE WHERE TheatreID = ${id};`;
         else if (labTab === 'BOOKINGS') sql = `DELETE FROM BOOKING WHERE BookingID = ${id};`;
         else if (labTab === 'SHOWS') sql = `DELETE FROM \`SHOW\` WHERE ShowID = ${id};`;
-        else if (labTab === 'BOOKED SEATS') {
-            const [bookingId, seatId] = String(id).split('/');
-            sql = `DELETE FROM BOOKING_SEAT WHERE BookingID = ${bookingId} AND SeatID = ${seatId};`;
-        }
         
         setRawSqlText(sql);
         setRawSqlModalOpen(true);
@@ -137,7 +122,6 @@ export default function DemoDashboard() {
                 else if (labTab === 'THEATRES') fetchTheatres();
                 else if (labTab === 'BOOKINGS') fetchBookings();
                 else if (labTab === 'SHOWS') fetchShows();
-                else if (labTab === 'BOOKED SEATS') fetchBookedSeats();
                 
                 fetchStats();
             } else {
@@ -627,7 +611,7 @@ export default function DemoDashboard() {
             <div style={{ border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', marginBottom: '4rem' }}>
                 {/* Tabs */}
                 <div style={{ display: 'flex', borderBottom: '1px solid rgba(176,138,62,0.2)' }}>
-                    {['MOVIES', 'THEATRES', 'SHOWS', 'BOOKINGS', 'BOOKED SEATS'].map((tab, idx) => (
+                    {['MOVIES', 'THEATRES', 'SHOWS', 'BOOKINGS'].map((tab, idx) => (
                         <button 
                             key={tab}
                             onClick={() => { setLabTab(tab); setLabSqlLog(null); }}
@@ -717,7 +701,7 @@ export default function DemoDashboard() {
                                                         Edit
                                                     </button>
                                                     <button 
-                                                        onClick={() => handleLabDelete(row.ShowID || (row.BookingID && row.SeatID ? `${row.BookingID}/${row.SeatID}` : null) || row.BookingID || row.TheatreID || row.MovieID)}
+                                                        onClick={() => handleLabDelete(row.ShowID || row.BookingID || row.TheatreID || row.MovieID)}
                                                         style={{ background: 'transparent', border: '1px solid var(--c-burgundy)', color: 'var(--c-burgundy)', padding: '0.25rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
                                                     >
                                                         Delete
@@ -848,22 +832,7 @@ export default function DemoDashboard() {
                                         </div>
                                     </>
                                 )}
-                                {labTab === 'BOOKED SEATS' && (
-                                    <>
-                                        <div style={{ marginBottom: '1rem' }}>
-                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Booking ID</label>
-                                            <input required disabled={labModalMode === 'EDIT'} type="number" value={labFormData.BookingID || ''} onChange={e => setLabFormData({...labFormData, BookingID: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: labModalMode === 'EDIT' ? 'rgba(0,0,0,0.05)' : 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
-                                        </div>
-                                        <div style={{ marginBottom: '1rem' }}>
-                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Seat ID</label>
-                                            <input required disabled={labModalMode === 'EDIT'} type="number" value={labFormData.SeatID || ''} onChange={e => setLabFormData({...labFormData, SeatID: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: labModalMode === 'EDIT' ? 'rgba(0,0,0,0.05)' : 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
-                                        </div>
-                                        <div style={{ marginBottom: '2rem' }}>
-                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Price at Booking</label>
-                                            <input required type="number" step="0.01" value={labFormData.PriceAtBooking || ''} onChange={e => setLabFormData({...labFormData, PriceAtBooking: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
-                                        </div>
-                                    </>
-                                )}
+
                                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                                     <button type="button" onClick={() => setLabModalOpen(false)} style={{ padding: '0.75rem 1.5rem', background: 'transparent', border: '1px solid rgba(176,138,62,0.2)', color: 'var(--c-text-muted)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Cancel</button>
                                     <button type="submit" style={{ padding: '0.75rem 1.5rem', background: 'var(--c-gold)', border: 'none', color: 'var(--c-surface)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Generate SQL</button>

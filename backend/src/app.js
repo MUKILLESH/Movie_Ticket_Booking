@@ -11,7 +11,6 @@ const theatreRoutes = require('./routes/theatreRoutes');
 const showRoutes = require('./routes/showRoutes');
 const seatRoutes = require('./routes/seatRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
-const bookedSeatRoutes = require('./routes/bookedSeatRoutes');
 // const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
@@ -31,7 +30,6 @@ app.use('/api/movies', movieRoutes);
 app.use('/api/theatres', theatreRoutes);
 app.use('/api/shows', showRoutes);
 app.use('/api/shows/:showId/seats', seatRoutes);
-app.use('/api/booked-seats', bookedSeatRoutes);
 
 // Apply strict rate limiter to bookings
 app.use('/api/bookings', bookingLimiter, bookingRoutes);
