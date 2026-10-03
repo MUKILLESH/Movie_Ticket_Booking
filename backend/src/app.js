@@ -11,6 +11,7 @@ const theatreRoutes = require('./routes/theatreRoutes');
 const showRoutes = require('./routes/showRoutes');
 const seatRoutes = require('./routes/seatRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const authRoutes = require('./routes/authRoutes');
 // const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/', apiLimiter);
 
 // Mount Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/theatres', theatreRoutes);
 app.use('/api/shows', showRoutes);

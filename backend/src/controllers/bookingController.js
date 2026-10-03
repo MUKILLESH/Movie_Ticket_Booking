@@ -5,9 +5,8 @@ const pool = require('../config/db');
 exports.createBooking = async (req, res, next) => {
     try {
         const { showId, seatIds, paymentMode } = req.body;
-        // In a real app, customerId would come from an authenticated token (req.user.id)
-        // For this demo, we'll accept it in the body or default to Customer 1
-        const customerId = req.body.customerId || 1;
+        // customerId comes from authenticated token (req.user.id)
+        const customerId = req.user.id;
 
         if (!showId || !seatIds || !Array.isArray(seatIds) || seatIds.length === 0) {
             return res.status(400).json({ error: 'Bad Request', message: 'showId and an array of seatIds are required.' });
@@ -46,7 +45,7 @@ exports.getBookingById = async (req, res, next) => {
     try {
         const bookingId = req.params.bookingId;
         const [bookings] = await pool.query(`
-            SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, c.Name as CustomerName,
+            SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, c.Name as CustomerName, b.CustomerID,
                    s.ShowDate, s.ShowTime, m.Title as MovieTitle, t.Name as TheatreName, sc.ScreenNumber
             FROM BOOKING b
             JOIN CUSTOMER c ON b.CustomerID = c.CustomerID
@@ -59,6 +58,13 @@ exports.getBookingById = async (req, res, next) => {
 
         if (bookings.length === 0) {
             return res.status(404).json({ error: 'Not Found', message: 'Booking not found' });
+        }
+
+        const booking = bookings[0];
+        
+        // Ensure user is admin or owns the booking
+        if (req.user.role !== 'ADMIN' && booking.CustomerID !== req.user.id) {
+            return res.status(403).json({ error: 'Forbidden', message: 'You can only view your own bookings' });
         }
 
         // Fetch booked seats for this booking
@@ -88,6 +94,26 @@ exports.getCustomersBookings = async (req, res, next) => {
             FROM BOOKING b
             JOIN \`SHOW\` s ON b.ShowID = s.ShowID
             JOIN MOVIE m ON s.MovieID = m.MovieID
+            WHERE b.CustomerID = ?
+            ORDER BY b.BookingDate DESC
+        `, [customerId]);
+
+        res.status(200).json(bookings);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getMyBookings = async (req, res, next) => {
+    try {
+        const customerId = req.user.id;
+        const [bookings] = await pool.query(`
+            SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, m.Title as MovieTitle, t.Name as TheatreName
+            FROM BOOKING b
+            JOIN \`SHOW\` s ON b.ShowID = s.ShowID
+            JOIN MOVIE m ON s.MovieID = m.MovieID
+            JOIN SCREEN sc ON s.ScreenID = sc.ScreenID
+            JOIN THEATRE t ON sc.TheatreID = t.TheatreID
             WHERE b.CustomerID = ?
             ORDER BY b.BookingDate DESC
         `, [customerId]);

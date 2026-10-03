@@ -324,3 +324,12 @@ exports.executeRawSql = async (req, res, next) => {
     }
 };
 
+exports.getUsers = async (req, res, next) => {
+    try {
+        const [users] = await pool.query('SELECT CustomerID, Name, Email, Phone, Role FROM CUSTOMER ORDER BY CustomerID DESC');
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+

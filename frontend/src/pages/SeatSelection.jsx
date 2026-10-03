@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, SpotLight, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { fetchSeatsForShow, recommendSeats, createBooking } from '../services/api';
 import { ArrowLeft, Ticket } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 // --- Detailed 3D Seat Component ---
 function Seat3D({ position, seatData, status, onClick, isAnalyzing }) {
@@ -325,6 +326,7 @@ function TheatreScene({ seats, selectedSeats, recommendedSeats, onSeatClick, alg
 export default function SeatSelection() {
     const { showId } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     
     const [seats, setSeats] = useState([]);
     const [selectedSeats, setSelectedSeats] = useState(new Set());
@@ -456,12 +458,14 @@ export default function SeatSelection() {
                 {/* Right side (28%) Nav */}
                 <div style={{ width: '28%', padding: '0 3rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', gap: '2rem', pointerEvents: 'auto' }}>
-                        <span className="font-sans" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', color: 'var(--c-text-primary)' }}>MOVIES</span>
-                        <span className="font-sans" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', color: 'var(--c-text-primary)' }}>MY BOOKINGS</span>
+                        <Link to="/" className="font-sans" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', color: 'var(--c-text-primary)', textDecoration: 'none' }}>MOVIES</Link>
+                        <Link to="/my-bookings" className="font-sans" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', color: 'var(--c-text-primary)', textDecoration: 'none' }}>MY BOOKINGS</Link>
                     </div>
-                    <span className="font-sans" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--c-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--c-gold)' }} /> DBMS LAB
-                    </span>
+                    {user?.role === 'ADMIN' && (
+                        <Link to="/demo" className="font-sans" style={{ textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--c-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem', pointerEvents: 'auto' }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--c-gold)' }} /> DBMS LAB
+                        </Link>
+                    )}
                 </div>
             </div>
 

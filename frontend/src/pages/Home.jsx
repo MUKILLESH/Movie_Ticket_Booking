@@ -263,9 +263,18 @@ function FilmReelAssembly() {
     const screwAngles = useMemo(() =>
         Array.from({ length: 5 }, (_, i) => (i * Math.PI * 2) / 5 + Math.PI / 5), []);
 
+    const spinRef = useRef();
+
+    useFrame((state, delta) => {
+        if (spinRef.current) {
+            spinRef.current.rotation.z += delta * 0.4;
+        }
+    });
+
     return (
         <group rotation={[0.12, -0.25, 0.02]} scale={0.95}>
-            {/* ======= OUTER RIM (structural ring connecting both plates) ======= */}
+            <group ref={spinRef}>
+                {/* ======= OUTER RIM (structural ring connecting both plates) ======= */}
             <mesh position={[0, 0, -HD]} material={polishedBrass} castShadow receiveShadow>
                 <extrudeGeometry args={[rimShape, rimExt]} />
             </mesh>
@@ -350,8 +359,9 @@ function FilmReelAssembly() {
             <mesh position={[0, 0, -(HD - 0.07)]} rotation={[0, Math.PI, 0]} material={filmEndMat}>
                 <ringGeometry args={[1.42, 2.35, 96]} />
             </mesh>
+            </group>
 
-            {/* ======= FILM STRIP (Attached to Reel) ======= */}
+            {/* ======= FILM STRIP (Attached to Reel, but not spinning with it) ======= */}
             <FilmStrip35mm />
         </group>
     );

@@ -35,11 +35,19 @@ export default function DemoDashboard() {
         else if (labTab === 'THEATRES') fetchTheatres();
         else if (labTab === 'BOOKINGS') fetchBookings();
         else if (labTab === 'SHOWS') fetchShows();
+        else if (labTab === 'USERS') fetchUsers();
     }, [labTab]);
+
+    const fetchWithAuth = async (url, options = {}) => {
+        const token = localStorage.getItem('token');
+        const headers = { ...options.headers };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return fetch(url, { ...options, headers });
+    };
 
     const fetchMovies = async () => {
         try {
-            const res = await fetch(`${API_URL}/movies`);
+            const res = await fetchWithAuth(`${API_URL}/movies`);
             const data = await res.json();
             setLabData(data);
         } catch (e) { console.error(e); }
@@ -47,7 +55,7 @@ export default function DemoDashboard() {
 
     const fetchTheatres = async () => {
         try {
-            const res = await fetch(`${API_URL}/theatres`);
+            const res = await fetchWithAuth(`${API_URL}/theatres`);
             const data = await res.json();
             setLabData(data);
         } catch (e) { console.error(e); }
@@ -55,7 +63,7 @@ export default function DemoDashboard() {
 
     const fetchBookings = async () => {
         try {
-            const res = await fetch(`${API_URL}/bookings`);
+            const res = await fetchWithAuth(`${API_URL}/bookings`);
             const data = await res.json();
             setLabData(data);
         } catch (e) { console.error(e); }
@@ -63,7 +71,7 @@ export default function DemoDashboard() {
 
     const fetchShows = async () => {
         try {
-            const res = await fetch(`${API_URL}/shows`);
+            const res = await fetchWithAuth(`${API_URL}/shows`);
             const data = await res.json();
             setLabData(data);
         } catch (e) { console.error(e); }
@@ -107,7 +115,7 @@ export default function DemoDashboard() {
 
     const handleRawSqlSubmit = async () => {
         try {
-            const res = await fetch(`${API_URL}/admin/execute-raw-sql`, {
+            const res = await fetchWithAuth(`${API_URL}/admin/execute-raw-sql`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sql: rawSqlText })
@@ -122,6 +130,8 @@ export default function DemoDashboard() {
                 else if (labTab === 'THEATRES') fetchTheatres();
                 else if (labTab === 'BOOKINGS') fetchBookings();
                 else if (labTab === 'SHOWS') fetchShows();
+                else if (labTab === 'USERS') fetchUsers();
+                else if (labTab === 'USERS') fetchUsers();
                 
                 fetchStats();
             } else {
@@ -139,7 +149,7 @@ export default function DemoDashboard() {
     }, []);
 
     const fetchStats = () => {
-        fetch(`${API_URL}/admin/stats`)
+        fetchWithAuth(`${API_URL}/admin/stats`)
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
@@ -164,7 +174,7 @@ export default function DemoDashboard() {
         try {
             addLog("=== CONCURRENCY TEST INITIALIZATION ===");
             addLog("Scanning database for currently AVAILABLE contiguous seats on Show 1...");
-            const seatsRes = await fetch(`${API_URL}/shows/1/seats`);
+            const seatsRes = await fetchWithAuth(`${API_URL}/shows/1/seats`);
             const seats = await seatsRes.json();
             
             if (!Array.isArray(seats)) {
@@ -194,7 +204,7 @@ export default function DemoDashboard() {
             
             const requests = Array.from({ length: 10 }, (_, i) => {
                 const reqId = i + 1;
-                return fetch(`${API_URL}/bookings`, {
+                return fetchWithAuth(`${API_URL}/bookings`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ showId: 1, seatIds: targetSeatIds, paymentMode: 'UPI' })
@@ -244,7 +254,7 @@ export default function DemoDashboard() {
         
         for (let i = 1; i <= 12; i++) {
             try {
-                const res = await fetch(`${API_URL}/admin/rate-limit-test`);
+                const res = await fetchWithAuth(`${API_URL}/admin/rate-limit-test`);
                 const data = await res.json();
                 
                 setRateLimitState({
@@ -270,7 +280,7 @@ export default function DemoDashboard() {
 
     const resetRateLimit = async () => {
         try {
-            await fetch(`${API_URL}/admin/rate-limit-reset`, { method: 'POST' });
+            await fetchWithAuth(`${API_URL}/admin/rate-limit-reset`, { method: 'POST' });
             setRateLimitState({ limit: 10, windowMinutes: 5, currentRequests: 0, status: 'ALLOWED', http: 200 });
             addLog("Rate limiter metrics reset.");
         } catch (err) {
@@ -280,7 +290,7 @@ export default function DemoDashboard() {
 
     const runSqlDemo = async (queryId) => {
         try {
-            const res = await fetch(`${API_URL}/admin/demo-query`, {
+            const res = await fetchWithAuth(`${API_URL}/admin/demo-query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ queryId })

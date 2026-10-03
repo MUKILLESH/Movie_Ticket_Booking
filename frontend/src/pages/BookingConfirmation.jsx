@@ -3,8 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, QrCode } from 'lucide-react';
 import { getMoviePosterUrl } from '../utils/helpers';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { getBookingById } from '../services/api';
 
 export default function BookingConfirmation() {
     const { bookingId } = useParams();
@@ -12,8 +11,7 @@ export default function BookingConfirmation() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${API_URL}/bookings/${bookingId}`)
-            .then(res => res.json())
+        getBookingById(bookingId)
             .then(data => {
                 setBooking(data);
                 setLoading(false);

@@ -16,6 +16,11 @@ import DemoDashboard from './pages/DemoDashboard';
 import DatabaseSchema from './pages/DatabaseSchema';
 import SqlQueryConsole from './pages/SqlQueryConsole';
 
+import Login from './pages/Login';
+import MyBookings from './pages/MyBookings';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+
 // Wrap Routes to allow useLocation for AnimatePresence
 function AnimatedRoutes() {
   const location = useLocation();
@@ -23,15 +28,23 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/movies/:id" element={<MovieDetails />} />
-        <Route path="/shows/:showId/seats" element={<SeatSelection />} />
-        <Route path="/booking/:bookingId" element={<BookingConfirmation />} />
-        <Route path="/demo" element={<DemoDashboard />} />
-        <Route path="/schema" element={<DatabaseSchema />} />
-        <Route path="/sql-console" element={<SqlQueryConsole />} />
-        <Route path="/query-console" element={<SqlQueryConsole />} />
-        <Route path="/sql-runner" element={<SqlQueryConsole />} />
+        
+        <Route element={<ProtectedRoute />}>
+          <Route path="/shows/:showId/seats" element={<SeatSelection />} />
+          <Route path="/booking/:bookingId" element={<BookingConfirmation />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route path="/demo" element={<DemoDashboard />} />
+          <Route path="/schema" element={<DatabaseSchema />} />
+          <Route path="/sql-console" element={<SqlQueryConsole />} />
+          <Route path="/query-console" element={<SqlQueryConsole />} />
+          <Route path="/sql-runner" element={<SqlQueryConsole />} />
+        </Route>
       </Routes>
     </AnimatePresence>
   );
@@ -40,6 +53,7 @@ function AnimatedRoutes() {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,62 +102,97 @@ function Navbar() {
         <Link to="/" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
           MOVIES
         </Link>
-        <Link to="/demo" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.5rem',
-          color: isDemo ? 'var(--c-gold)' : 'var(--c-text-primary)',
-          opacity: 0.9,
-          textDecoration: 'none',
-          transition: 'all 0.2s'
-        }}>
-          <span style={{ 
-            width: 6, 
-            height: 6, 
-            borderRadius: '50%', 
-            backgroundColor: isDemo ? 'var(--c-gold)' : 'transparent',
-            border: isDemo ? 'none' : '1px solid var(--c-text-muted)',
-            boxShadow: `0 0 8px ${isDemo ? 'rgba(176,138,62,0.4)' : 'transparent'}`
-          }} />
-          DBMS LAB
-        </Link>
-        <Link to="/schema" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
-          DATABASE SCHEMA
-        </Link>
-        <Link 
-          to="/sql-console" 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.5rem 1.15rem',
-            borderRadius: '20px',
-            backgroundColor: isSqlConsole ? 'var(--c-gold)' : 'rgba(176,138,62,0.12)',
-            border: '1px solid var(--c-gold)',
-            color: isSqlConsole ? '#FFFFFF' : 'var(--c-gold-dark)',
-            textDecoration: 'none',
-            fontWeight: 700,
-            fontSize: '0.78rem',
-            letterSpacing: '0.08em',
-            transition: 'all 0.25s ease',
-            boxShadow: isSqlConsole ? '0 0 15px rgba(176,138,62,0.35)' : 'none'
-          }}
-          onMouseEnter={(e) => {
-            if (!isSqlConsole) {
-              e.currentTarget.style.backgroundColor = 'var(--c-gold)';
-              e.currentTarget.style.color = '#FFFFFF';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isSqlConsole) {
-              e.currentTarget.style.backgroundColor = 'rgba(176,138,62,0.12)';
-              e.currentTarget.style.color = 'var(--c-gold-dark)';
-            }
-          }}
-        >
-          <Terminal size={14} />
-          <span>SQL QUERY CONSOLE</span>
-        </Link>
+
+        {user ? (
+          <>
+            <Link to="/my-bookings" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+              MY BOOKINGS
+            </Link>
+
+            {user.role === 'ADMIN' && (
+              <>
+                <Link to="/demo" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem',
+                  color: isDemo ? 'var(--c-gold)' : 'var(--c-text-primary)',
+                  opacity: 0.9,
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}>
+                  <span style={{ 
+                    width: 6, 
+                    height: 6, 
+                    borderRadius: '50%', 
+                    backgroundColor: isDemo ? 'var(--c-gold)' : 'transparent',
+                    border: isDemo ? 'none' : '1px solid var(--c-text-muted)',
+                    boxShadow: `0 0 8px ${isDemo ? 'rgba(176,138,62,0.4)' : 'transparent'}`
+                  }} />
+                  DBMS LAB
+                </Link>
+                <Link to="/schema" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+                  DATABASE SCHEMA
+                </Link>
+                <Link 
+                  to="/sql-console" 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.5rem 1.15rem',
+                    borderRadius: '20px',
+                    backgroundColor: isSqlConsole ? 'var(--c-gold)' : 'rgba(176,138,62,0.12)',
+                    border: '1px solid var(--c-gold)',
+                    color: isSqlConsole ? '#FFFFFF' : 'var(--c-gold-dark)',
+                    textDecoration: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    letterSpacing: '0.08em',
+                    transition: 'all 0.25s ease',
+                    boxShadow: isSqlConsole ? '0 0 15px rgba(176,138,62,0.35)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSqlConsole) {
+                      e.currentTarget.style.backgroundColor = 'var(--c-gold)';
+                      e.currentTarget.style.color = '#FFFFFF';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSqlConsole) {
+                      e.currentTarget.style.backgroundColor = 'rgba(176,138,62,0.12)';
+                      e.currentTarget.style.color = 'var(--c-gold-dark)';
+                    }
+                  }}
+                >
+                  <Terminal size={14} />
+                  <span>SQL QUERY CONSOLE</span>
+                </Link>
+              </>
+            )}
+
+            <button 
+              onClick={logout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--c-text-primary)',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                letterSpacing: '0.05em',
+                cursor: 'pointer',
+                opacity: 0.8
+              }}
+              onMouseEnter={(e) => e.target.style.opacity = 1} 
+              onMouseLeave={(e) => e.target.style.opacity = 0.8}
+            >
+              LOGOUT
+            </button>
+          </>
+        ) : (
+          <Link to="/login" style={{ opacity: 0.8, transition: 'opacity 0.2s', color: 'var(--c-text-primary)', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.8}>
+            LOGIN
+          </Link>
+        )}
       </div>
     </motion.nav>
   );
@@ -178,18 +227,20 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <div className="app-container">
-        <div className="film-grain" />
-        <div className="vignette" />
-        
-        <Navbar />
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="app-container">
+          <div className="film-grain" />
+          <div className="vignette" />
+          
+          <Navbar />
 
-        <main className="main-content" style={{ position: 'relative', zIndex: 10 }}>
-          <AnimatedRoutes />
-        </main>
-      </div>
-    </BrowserRouter>
+          <main className="main-content" style={{ position: 'relative', zIndex: 10 }}>
+            <AnimatedRoutes />
+          </main>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

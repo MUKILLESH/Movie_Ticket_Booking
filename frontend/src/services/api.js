@@ -1,5 +1,48 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+};
+
+export const loginUser = async (email, password) => {
+    const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    return data;
+};
+
+export const registerUser = async (name, email, password, phone) => {
+    const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, phone })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    return data;
+};
+
+export const getMyBookings = async () => {
+    const res = await fetch(`${API_URL}/bookings/my-bookings`, {
+        headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch bookings');
+    return res.json();
+};
+
+export const getBookingById = async (id) => {
+    const res = await fetch(`${API_URL}/bookings/${id}`, {
+        headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch booking');
+    return res.json();
+};
+
 export const fetchMovies = async () => {
     const res = await fetch(`${API_URL}/movies`);
     if(!res.ok) throw new Error('Failed to fetch movies');
@@ -33,7 +76,7 @@ export const fetchSeatsForShow = async (showId) => {
 export const recommendSeats = async (showId, groupSize) => {
     const res = await fetch(`${API_URL}/shows/${showId}/seats/recommend`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ groupSize })
     });
     if(!res.ok) {
@@ -46,7 +89,7 @@ export const recommendSeats = async (showId, groupSize) => {
 export const createBooking = async (showId, seatIds, paymentMode = 'UPI') => {
     const res = await fetch(`${API_URL}/bookings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ showId, seatIds, paymentMode })
     });
     const data = await res.json();
