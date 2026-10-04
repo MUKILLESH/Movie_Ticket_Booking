@@ -644,28 +644,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* DRAG TO EXPLORE indicator */}
-                <div ref={dragHintRef} style={{
-                    position: 'absolute', right: '3rem', top: '50%', transform: 'translateY(-50%)',
-                    zIndex: 15, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    gap: '0.6rem', opacity: 0, pointerEvents: 'none',
-                }}>
-                    {/* Cursor icon (circle with arrow) */}
-                    <div style={{
-                        width: 40, height: 40, borderRadius: '50%', border: '1.5px solid var(--c-text-muted)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5,
-                    }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-text-muted)" strokeWidth="1.5">
-                            <path d="M5 9l-3 3 3 3" /><path d="M19 9l3 3-3 3" /><line x1="2" y1="12" x2="22" y2="12" />
-                        </svg>
-                    </div>
-                    <span className="font-sans" style={{
-                        fontSize: '0.55rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-                        color: 'var(--c-text-muted)', textAlign: 'center', lineHeight: 1.6,
-                    }}>
-                        DRAG<br />TO EXPLORE
-                    </span>
-                </div>
 
                 {/* Bottom footer bar */}
                 <div style={{
