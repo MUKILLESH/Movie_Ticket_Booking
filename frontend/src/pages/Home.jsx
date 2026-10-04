@@ -196,36 +196,36 @@ function createFilmStripShape() {
 function FilmReelAssembly() {
     // --- MATERIALS ---
     const polishedBrass = useMemo(() => new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#d4aa55'), metalness: 1.0, roughness: 0.20,
-        clearcoat: 0.18, clearcoatRoughness: 0.10,
+        color: new THREE.Color('#d4a855'), metalness: 0.85, roughness: 0.25,
+        clearcoat: 0.15, clearcoatRoughness: 0.15,
     }), []);
 
     const agedBrass = useMemo(() => {
         const rMap = createBrassRoughnessMap();
         return new THREE.MeshPhysicalMaterial({
-            color: new THREE.Color('#cda860'), metalness: 1.0, roughness: 0.28,
-            roughnessMap: rMap, clearcoat: 0.12,
+            color: new THREE.Color('#b89455'), metalness: 0.8, roughness: 0.35,
+            roughnessMap: rMap, clearcoat: 0.1,
         });
     }, []);
 
     const darkBrass = useMemo(() => new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#9a8050'), metalness: 0.95, roughness: 0.45,
+        color: new THREE.Color('#8a7045'), metalness: 0.75, roughness: 0.5,
     }), []);
 
     const darkMetal = useMemo(() => new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#111111'), metalness: 0.85, roughness: 0.65,
+        color: new THREE.Color('#2a2520'), metalness: 0.6, roughness: 0.6,
     }), []);
 
     const filmMat = useMemo(() => {
         const nMap = createFilmLayerNormalMap();
         return new THREE.MeshPhysicalMaterial({
-            color: new THREE.Color('#0c0a06'), roughness: 0.12, metalness: 0.05,
-            normalMap: nMap, normalScale: new THREE.Vector2(0.25, 0.25), clearcoat: 0.3,
+            color: new THREE.Color('#221d18'), roughness: 0.35, metalness: 0.15,
+            normalMap: nMap, normalScale: new THREE.Vector2(0.4, 0.4), clearcoat: 0.2,
         });
     }, []);
 
     const filmEndMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#080604'), roughness: 0.20, metalness: 0.03,
+        color: new THREE.Color('#1f1a15'), roughness: 0.45, metalness: 0.1,
     }), []);
 
     // --- SHAPES (memoized) ---
@@ -439,13 +439,15 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
             dragRotY.current, dragTarget, isDragging.current ? 0.08 : 0.02
         );
 
-        // Idle animation (imperceptible breathing)
+        // Idle animation (floating and extremely slow rotation)
         if (!reducedMotion.current) {
             idlePhase.current = t;
-            reelGroupRef.current.position.y = Math.sin(t * 0.5) * 0.012;
+            reelGroupRef.current.position.y = Math.sin(t * 0.4) * 0.04;
         }
 
-        reelGroupRef.current.rotation.y = dragRotY.current + Math.sin(idlePhase.current * 0.35) * 0.004;
+        // Combine drag and subtle idle rotation (around 4-5 degrees = ~0.08 radians)
+        reelGroupRef.current.rotation.y = dragRotY.current + Math.sin(idlePhase.current * 0.25) * 0.08;
+        reelGroupRef.current.rotation.x = Math.sin(idlePhase.current * 0.2) * 0.03;
     });
 
     // ScrollTrigger choreography
@@ -470,18 +472,23 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
 
     return (
         <>
-            <Environment preset="studio" environmentIntensity={0.72} />
+            <Environment preset="studio" environmentIntensity={0.85} />
             <group ref={sceneGroupRef} position={[reelX, 0.0, 0]} scale={reelScale}>
-                <ambientLight intensity={0.35} color="#fff8f0" />
-                <spotLight position={[14, 20, 14]} angle={0.4} penumbra={1}
-                    intensity={110} color="#fff0d8" castShadow
+                <ambientLight intensity={0.6} color="#fff4e6" />
+                
+                {/* KEY LIGHT: front-left and slightly above */}
+                <spotLight position={[-10, 15, 12]} angle={0.6} penumbra={0.8}
+                    intensity={220} color="#ffedd6" castShadow
                     shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-bias={-0.0001} />
-                {/* FILL: cooler, softer */}
-                <pointLight position={[-10, 5, -10]} intensity={25} color="#e5eeff" />
-                {/* RIM: warm champagne accent from below-right */}
-                <pointLight position={[8, -3, 6]} intensity={15} color="#ffe0a0" />
-                {/* BACK RIM: highlight spoke edges from behind */}
-                <pointLight position={[-4, 2, -10]} intensity={18} color="#fff5e0" />
+                
+                {/* FILL LIGHT: Soft cream fill from opposite side (front-right) */}
+                <pointLight position={[12, 5, 8]} intensity={90} color="#fff8f0" />
+                
+                {/* RIM LIGHT: warm brass rim from behind/right */}
+                <pointLight position={[8, 2, -10]} intensity={120} color="#ffcc80" />
+                
+                {/* TOP AMBIENT: extra clarity for stationary object */}
+                <pointLight position={[0, 10, 5]} intensity={60} color="#ffffff" />
 
                 <group ref={reelGroupRef}>
                     <FilmReelAssembly />
