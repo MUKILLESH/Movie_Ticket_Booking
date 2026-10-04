@@ -196,24 +196,24 @@ function createFilmStripShape() {
 function FilmReelAssembly() {
     // --- MATERIALS ---
     const polishedBrass = useMemo(() => new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#c2ad8a'), metalness: 1.0, roughness: 0.16,
-        clearcoat: 0.2, clearcoatRoughness: 0.1,
+        color: new THREE.Color('#f0c459'), metalness: 1.0, roughness: 0.12,
+        clearcoat: 0.4, clearcoatRoughness: 0.1,
     }), []);
 
     const agedBrass = useMemo(() => {
         const rMap = createBrassRoughnessMap();
         return new THREE.MeshPhysicalMaterial({
-            color: new THREE.Color('#ab9674'), metalness: 1.0, roughness: 0.22,
-            roughnessMap: rMap, clearcoat: 0.1,
+            color: new THREE.Color('#d4a849'), metalness: 1.0, roughness: 0.22,
+            roughnessMap: rMap, clearcoat: 0.2,
         });
     }, []);
 
     const darkBrass = useMemo(() => new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color('#8a775b'), metalness: 1.0, roughness: 0.3,
+        color: new THREE.Color('#b38a36'), metalness: 1.0, roughness: 0.35,
     }), []);
 
     const darkMetal = useMemo(() => new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#141415'), metalness: 1.0, roughness: 0.22,
+        color: new THREE.Color('#2e2518'), metalness: 1.0, roughness: 0.3,
     }), []);
 
     const filmMat = useMemo(() => {
@@ -472,24 +472,24 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
 
     return (
         <>
-            <Environment preset="studio" environmentIntensity={1.8} />
+            <Environment preset="studio" environmentIntensity={2.5} />
             <group ref={sceneGroupRef} position={[reelX, 0.0, 0]} scale={reelScale}>
-                <ambientLight intensity={0.15} color="#ffffff" />
+                <ambientLight intensity={0.5} color="#ffffff" />
                 
                 {/* LARGE SOFTBOX: front-left key light */}
-                <rectAreaLight position={[-8, 8, 10]} width={12} height={12} intensity={5} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
+                <rectAreaLight position={[-8, 8, 10]} width={15} height={15} intensity={15} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
                 
                 {/* FRONT BROAD SOFTBOX: create gradient across flat face */}
-                <rectAreaLight position={[2, 2, 15]} width={20} height={20} intensity={1.5} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
+                <rectAreaLight position={[2, 2, 12]} width={25} height={25} intensity={10} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
                 
                 {/* VERTICAL SOFTBOX: right side for long specular reflection */}
-                <rectAreaLight position={[10, 0, 8]} width={2} height={16} intensity={6} color="#fff2e0" onUpdate={(self) => self.lookAt(0,0,0)} />
+                <rectAreaLight position={[10, 0, 8]} width={2} height={16} intensity={12} color="#fff2e0" onUpdate={(self) => self.lookAt(0,0,0)} />
                 
                 {/* TOP SOFTBOX: upper rim highlight */}
-                <rectAreaLight position={[0, 12, 2]} width={16} height={4} intensity={4} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
+                <rectAreaLight position={[0, 12, 2]} width={16} height={4} intensity={8} color="#ffffff" onUpdate={(self) => self.lookAt(0,0,0)} />
                 
                 {/* SUBTLE RIM LIGHT: from behind/right */}
-                <rectAreaLight position={[6, -4, -8]} width={8} height={8} intensity={3} color="#ffe5c2" onUpdate={(self) => self.lookAt(0,0,0)} />
+                <rectAreaLight position={[6, -4, -8]} width={8} height={8} intensity={5} color="#ffe5c2" onUpdate={(self) => self.lookAt(0,0,0)} />
 
                 <group ref={reelGroupRef}>
                     <FilmReelAssembly />
