@@ -42,7 +42,7 @@ const Login = () => {
             backgroundColor: 'var(--c-bg)',
             color: 'var(--c-text-primary)'
         }}>
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 style={{
@@ -66,27 +66,27 @@ const Login = () => {
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {!isLogin && (
-                        <input 
-                            type="text" 
-                            placeholder="Full Name" 
-                            value={name} 
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                             style={inputStyle}
                         />
                     )}
-                    <input 
-                        type="email" 
-                        placeholder="Email Address" 
-                        value={email} 
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         style={inputStyle}
                     />
-                    <input 
-                        type="password" 
-                        placeholder="Password" 
-                        value={password} 
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         style={inputStyle}
@@ -98,8 +98,8 @@ const Login = () => {
 
                 <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--c-text-muted)' }}>
                     {isLogin ? "Don't have an account? " : "Already have an account? "}
-                    <span 
-                        onClick={() => setIsLogin(!isLogin)} 
+                    <span
+                        onClick={() => setIsLogin(!isLogin)}
                         style={{ color: 'var(--c-gold-dark)', cursor: 'pointer', fontWeight: 'bold' }}
                     >
                         {isLogin ? 'Sign Up' : 'Sign In'}

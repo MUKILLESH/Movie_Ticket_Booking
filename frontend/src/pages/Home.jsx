@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, ContactShadows, Environment } from '@react-three/drei';
@@ -160,31 +161,31 @@ function createFilmStripCurve() {
     const R = 2.35;
     const theta = -Math.PI / 3; // 5 o'clock position
     const p0 = new THREE.Vector3(R * Math.cos(theta), R * Math.sin(theta), 0);
-    
+
     // Tangent direction for CCW unwinding (points right and up)
     const t0 = new THREE.Vector3(-Math.sin(theta), Math.cos(theta), 0).normalize();
-    
+
     // Control points for a natural, gravity-affected physical curve
     const p1 = p0.clone().add(t0.clone().multiplyScalar(1.8));
     const p2 = new THREE.Vector3(5.5, -3.5, 0.5);
     const p3 = new THREE.Vector3(9.5, -4.5, 1.2);
-    
+
     return new THREE.CubicBezierCurve3(p0, p1, p2, p3);
 }
 
 function createFilmStripShape() {
     const s = new THREE.Shape();
     // Width must exactly match the wound film depth (0.75 total)
-    const hw = 0.375; 
+    const hw = 0.375;
     const ht = 0.005; // physical thickness
-    
+
     // Draw along Y to align with the Z binormal, keeping texture UV sequence intact
     s.moveTo(ht, -hw);
     s.lineTo(ht, hw);
     s.lineTo(-ht, hw);
     s.lineTo(-ht, -hw);
     s.closePath();
-    
+
     return s;
 }
 
@@ -265,9 +266,11 @@ function FilmReelAssembly() {
 
     const spinRef = useRef();
 
-    useFrame((state, delta) => {
+    useFrame((state) => {
         if (spinRef.current) {
-            spinRef.current.rotation.z += delta * 0.4;
+            // Subtle rotation based on mouse cursor instead of constant spin
+            const targetZ = state.pointer.x * 0.5;
+            spinRef.current.rotation.z = THREE.MathUtils.lerp(spinRef.current.rotation.z, targetZ, 0.02);
         }
     });
 
@@ -275,90 +278,90 @@ function FilmReelAssembly() {
         <group rotation={[0.12, -0.25, 0.02]} scale={0.95}>
             <group ref={spinRef}>
                 {/* ======= OUTER RIM (structural ring connecting both plates) ======= */}
-            <mesh position={[0, 0, -HD]} material={polishedBrass} castShadow receiveShadow>
-                <extrudeGeometry args={[rimShape, rimExt]} />
-            </mesh>
-
-            {/* ======= FRONT PLATE ======= */}
-            <mesh position={[0, 0, HD - PT]} material={agedBrass} castShadow receiveShadow>
-                <extrudeGeometry args={[plateShape, plateExt]} />
-            </mesh>
-
-            {/* ======= BACK PLATE ======= */}
-            <mesh position={[0, 0, -HD]} material={agedBrass} castShadow receiveShadow>
-                <extrudeGeometry args={[plateShape, plateExt]} />
-            </mesh>
-
-            {/* ======= FRONT HUB ASSEMBLY ======= */}
-            <group position={[0, 0, HD]}>
-                {/* Outer hub ring (raised, polished) */}
-                <mesh material={polishedBrass} castShadow>
-                    <extrudeGeometry args={[outerHubShape, hubExt]} />
-                </mesh>
-                {/* Inner hub ring */}
-                <mesh position={[0, 0, 0.015]} material={polishedBrass} castShadow>
-                    <extrudeGeometry args={[innerHubShape, hubExt]} />
-                </mesh>
-                {/* Concentric recessed ring (visual detail) */}
-                <mesh position={[0, 0, 0.005]} material={darkBrass}>
-                    <ringGeometry args={[0.90, 0.95, 64]} />
+                <mesh position={[0, 0, -HD]} material={polishedBrass} castShadow receiveShadow>
+                    <extrudeGeometry args={[rimShape, rimExt]} />
                 </mesh>
 
-                {/* Mounting holes (dark cylinders simulating depth) */}
-                {mountAngles.map((a, i) => (
-                    <mesh key={`mh-${i}`}
-                        position={[Math.cos(a) * 1.08, Math.sin(a) * 1.08, 0.028]}
-                        rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
-                        <cylinderGeometry args={[0.055, 0.055, 0.12, 16]} />
+                {/* ======= FRONT PLATE ======= */}
+                <mesh position={[0, 0, HD - PT]} material={agedBrass} castShadow receiveShadow>
+                    <extrudeGeometry args={[plateShape, plateExt]} />
+                </mesh>
+
+                {/* ======= BACK PLATE ======= */}
+                <mesh position={[0, 0, -HD]} material={agedBrass} castShadow receiveShadow>
+                    <extrudeGeometry args={[plateShape, plateExt]} />
+                </mesh>
+
+                {/* ======= FRONT HUB ASSEMBLY ======= */}
+                <group position={[0, 0, HD]}>
+                    {/* Outer hub ring (raised, polished) */}
+                    <mesh material={polishedBrass} castShadow>
+                        <extrudeGeometry args={[outerHubShape, hubExt]} />
                     </mesh>
-                ))}
-
-                {/* Screws (small raised cylinders) */}
-                {screwAngles.map((a, i) => (
-                    <mesh key={`sc-${i}`}
-                        position={[Math.cos(a) * 0.78, Math.sin(a) * 0.78, 0.055]}
-                        rotation={[Math.PI / 2, 0, 0]} material={polishedBrass}>
-                        <cylinderGeometry args={[0.05, 0.05, 0.025, 12]} />
+                    {/* Inner hub ring */}
+                    <mesh position={[0, 0, 0.015]} material={polishedBrass} castShadow>
+                        <extrudeGeometry args={[innerHubShape, hubExt]} />
                     </mesh>
-                ))}
-            </group>
+                    {/* Concentric recessed ring (visual detail) */}
+                    <mesh position={[0, 0, 0.005]} material={darkBrass}>
+                        <ringGeometry args={[0.90, 0.95, 64]} />
+                    </mesh>
 
-            {/* ======= BACK HUB (simpler, partially hidden) ======= */}
-            <mesh position={[0, 0, -HD - 0.04]} material={darkBrass} receiveShadow>
-                <extrudeGeometry args={[outerHubShape, { ...hubExt, depth: 0.035 }]} />
-            </mesh>
+                    {/* Mounting holes (dark cylinders simulating depth) */}
+                    {mountAngles.map((a, i) => (
+                        <mesh key={`mh-${i}`}
+                            position={[Math.cos(a) * 1.08, Math.sin(a) * 1.08, 0.028]}
+                            rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
+                            <cylinderGeometry args={[0.055, 0.055, 0.12, 16]} />
+                        </mesh>
+                    ))}
 
-            {/* ======= CENTER AXLE (deep dark opening) ======= */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
-                <cylinderGeometry args={[0.48, 0.48, HD * 2 + 0.2, 48, 1, true]} />
-            </mesh>
-            {/* Deep inner axle */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
-                <cylinderGeometry args={[0.35, 0.35, HD * 2 + 0.3, 32, 1, true]} />
-            </mesh>
+                    {/* Screws (small raised cylinders) */}
+                    {screwAngles.map((a, i) => (
+                        <mesh key={`sc-${i}`}
+                            position={[Math.cos(a) * 0.78, Math.sin(a) * 0.78, 0.055]}
+                            rotation={[Math.PI / 2, 0, 0]} material={polishedBrass}>
+                            <cylinderGeometry args={[0.05, 0.05, 0.025, 12]} />
+                        </mesh>
+                    ))}
+                </group>
 
-            {/* ======= WOUND PHOTOGRAPHIC FILM ======= */}
-            {/* Main body (ring extrusion) */}
-            <mesh position={[0, 0, -(HD - 0.08)]} material={filmMat} receiveShadow>
-                <extrudeGeometry args={[woundFilmShape, filmExt]} />
-            </mesh>
-            {/* Outer cylindrical edge (visible through cutouts) */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} material={filmMat} receiveShadow>
-                <cylinderGeometry args={[2.35, 2.35, HD * 2 - 0.15, 96, 1, true]} />
-            </mesh>
-            {/* Inner cylindrical surface */}
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[1.42, 1.42, HD * 2 - 0.15, 48, 1, true]} />
-                <meshPhysicalMaterial color="#0c0a06" roughness={0.15} metalness={0.03} side={THREE.DoubleSide} />
-            </mesh>
-            {/* Front film edge face (visible through cutouts) */}
-            <mesh position={[0, 0, HD - 0.07]} material={filmEndMat}>
-                <ringGeometry args={[1.42, 2.35, 96]} />
-            </mesh>
-            {/* Back film edge face */}
-            <mesh position={[0, 0, -(HD - 0.07)]} rotation={[0, Math.PI, 0]} material={filmEndMat}>
-                <ringGeometry args={[1.42, 2.35, 96]} />
-            </mesh>
+                {/* ======= BACK HUB (simpler, partially hidden) ======= */}
+                <mesh position={[0, 0, -HD - 0.04]} material={darkBrass} receiveShadow>
+                    <extrudeGeometry args={[outerHubShape, { ...hubExt, depth: 0.035 }]} />
+                </mesh>
+
+                {/* ======= CENTER AXLE (deep dark opening) ======= */}
+                <mesh rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
+                    <cylinderGeometry args={[0.48, 0.48, HD * 2 + 0.2, 48, 1, true]} />
+                </mesh>
+                {/* Deep inner axle */}
+                <mesh rotation={[Math.PI / 2, 0, 0]} material={darkMetal}>
+                    <cylinderGeometry args={[0.35, 0.35, HD * 2 + 0.3, 32, 1, true]} />
+                </mesh>
+
+                {/* ======= WOUND PHOTOGRAPHIC FILM ======= */}
+                {/* Main body (ring extrusion) */}
+                <mesh position={[0, 0, -(HD - 0.08)]} material={filmMat} receiveShadow>
+                    <extrudeGeometry args={[woundFilmShape, filmExt]} />
+                </mesh>
+                {/* Outer cylindrical edge (visible through cutouts) */}
+                <mesh rotation={[Math.PI / 2, 0, 0]} material={filmMat} receiveShadow>
+                    <cylinderGeometry args={[2.35, 2.35, HD * 2 - 0.15, 96, 1, true]} />
+                </mesh>
+                {/* Inner cylindrical surface */}
+                <mesh rotation={[Math.PI / 2, 0, 0]}>
+                    <cylinderGeometry args={[1.42, 1.42, HD * 2 - 0.15, 48, 1, true]} />
+                    <meshPhysicalMaterial color="#0c0a06" roughness={0.15} metalness={0.03} side={THREE.DoubleSide} />
+                </mesh>
+                {/* Front film edge face (visible through cutouts) */}
+                <mesh position={[0, 0, HD - 0.07]} material={filmEndMat}>
+                    <ringGeometry args={[1.42, 2.35, 96]} />
+                </mesh>
+                {/* Back film edge face */}
+                <mesh position={[0, 0, -(HD - 0.07)]} rotation={[0, Math.PI, 0]} material={filmEndMat}>
+                    <ringGeometry args={[1.42, 2.35, 96]} />
+                </mesh>
             </group>
 
             {/* ======= FILM STRIP (Attached to Reel, but not spinning with it) ======= */}
@@ -461,13 +464,14 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
         return () => ctx.revert();
     }, []);
 
-    // Responsive reel position
-    const reelX = viewport.width > 10 ? 4.8 : viewport.width > 6 ? 3.2 : 0;
+    // Responsive reel position - make it smaller and position it better
+    const reelX = viewport.width > 10 ? 4.0 : viewport.width > 6 ? 2.8 : 0;
+    const reelScale = viewport.width > 10 ? 0.75 : viewport.width > 6 ? 0.6 : 0.5;
 
     return (
         <>
             <Environment preset="studio" environmentIntensity={0.72} />
-            <group ref={sceneGroupRef} position={[reelX, 0.0, 0]}>
+            <group ref={sceneGroupRef} position={[reelX, 0.0, 0]} scale={reelScale}>
                 <ambientLight intensity={0.35} color="#fff8f0" />
                 <spotLight position={[14, 20, 14]} angle={0.4} penumbra={1}
                     intensity={110} color="#fff0d8" castShadow
@@ -497,13 +501,13 @@ function HeroScene({ isDragging, dragDeltaX, reducedMotion }) {
 export default function Home() {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('ALL');
     const navigate = useNavigate();
-    const railRef = useRef(null);
     const heroRef = useRef(null);
     const typographyRef = useRef(null);
     const canvasWrapperRef = useRef(null);
     const dragHintRef = useRef(null);
-    const [railProgress, setRailProgress] = useState(0);
+    const { user } = useAuth();
 
     // Drag interaction refs (shared with HeroScene via props)
     const isDragging = useRef(false);
@@ -526,21 +530,6 @@ export default function Home() {
             .then(data => { setMovies(data); setLoading(false); })
             .catch(err => { console.error(err); setLoading(false); });
     }, []);
-
-    // Rail scroll progress
-    const handleRailScroll = useCallback(() => {
-        if (railRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = railRef.current;
-            const max = scrollWidth - clientWidth;
-            if (max > 0) setRailProgress(scrollLeft / max);
-        }
-    }, []);
-
-    useEffect(() => {
-        const el = railRef.current;
-        if (el) el.addEventListener('scroll', handleRailScroll);
-        return () => { if (el) el.removeEventListener('scroll', handleRailScroll); };
-    }, [loading, handleRailScroll]);
 
     // GSAP entrance choreography
     useEffect(() => {
@@ -601,32 +590,56 @@ export default function Home() {
                 <div style={{ position: 'relative', zIndex: 10, display: 'flex', width: '100%', maxWidth: '1440px', margin: '0 auto', pointerEvents: 'none' }}>
                     <div ref={typographyRef}
                         style={{ width: '50%', padding: '4rem 0 4rem 4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', pointerEvents: 'auto', opacity: 0 }}>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                            <div style={{ width: '40px', height: '2px', backgroundColor: 'var(--c-gold)' }} />
+                            <span className="font-sans" style={{ color: 'var(--c-gold)', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600 }}>
+                                Premium Cinema Platform
+                            </span>
+                        </div>
+
                         <h1 className="font-serif" style={{
-                            fontSize: 'clamp(3.5rem, 6vw, 7rem)', color: 'var(--c-text-primary)',
-                            lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '2rem'
+                            fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: 'var(--c-text-primary)',
+                            lineHeight: 1.05, letterSpacing: '-0.01em', marginBottom: '1.5rem', fontWeight: 600
                         }}>
-                            NOVELTY<br />CINEMA<br />EXPERIENCE.
+                            Experience Cinema<br />Like Never Before.
                         </h1>
-                        <div style={{ width: '60px', height: '2px', backgroundColor: 'var(--c-gold)', marginBottom: '2rem' }} />
+                        
                         <p className="font-sans" style={{
-                            color: 'var(--c-text-secondary)', fontSize: '0.85rem', letterSpacing: '0.15em',
-                            textTransform: 'uppercase', marginBottom: '3.5rem', fontWeight: 500
+                            color: 'var(--c-text-secondary)', fontSize: '1.1rem', lineHeight: 1.6, 
+                            maxWidth: '450px', marginBottom: '3rem'
                         }}>
-                            Labs Project<br />Database Management
+                            Book tickets for the latest movies in our state-of-the-art theatres. A seamless booking experience powered by a robust database architecture.
                         </p>
-                        <div>
+                        
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <motion.button
-                                whileHover={{ y: -2, backgroundColor: 'var(--c-gold)', color: '#fff', boxShadow: '0 15px 30px rgba(176,138,62,0.2)' }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                whileHover={{ y: -2, backgroundColor: 'var(--c-gold)', color: '#fff', boxShadow: '0 10px 20px rgba(176,138,62,0.2)' }}
+                                transition={{ duration: 0.2, ease: 'easeOut' }}
                                 onClick={() => document.getElementById('now-showing')?.scrollIntoView({ behavior: 'smooth' })}
                                 style={{
-                                    padding: '1.15rem 2.8rem', backgroundColor: 'var(--c-surface)',
-                                    color: 'var(--c-text-primary)', fontSize: '0.72rem', letterSpacing: '0.15em',
-                                    fontWeight: 600, textTransform: 'uppercase', border: '1px solid var(--c-gold)',
-                                    cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.02)'
+                                    padding: '1.1rem 2.5rem', backgroundColor: 'var(--c-gold)',
+                                    color: '#fff', fontSize: '0.85rem', letterSpacing: '0.1em',
+                                    fontWeight: 600, textTransform: 'uppercase', border: 'none',
+                                    cursor: 'pointer', borderRadius: '4px'
                                 }}>
-                                EXPLORE SHOWTIMES
+                                EXPLORE MOVIES
                             </motion.button>
+
+                            {user && (
+                                <motion.button
+                                    whileHover={{ y: -2, backgroundColor: 'rgba(176,138,62,0.05)' }}
+                                    transition={{ duration: 0.2 }}
+                                    onClick={() => navigate('/my-bookings')}
+                                    style={{
+                                        padding: '1.1rem 2.5rem', backgroundColor: 'transparent',
+                                        color: 'var(--c-text-primary)', fontSize: '0.85rem', letterSpacing: '0.1em',
+                                        fontWeight: 600, textTransform: 'uppercase', border: '1px solid var(--c-text-primary)',
+                                        cursor: 'pointer', borderRadius: '4px'
+                                    }}>
+                                    VIEW BOOKINGS
+                                </motion.button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -670,73 +683,126 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ======= MOVIES RAIL ======= */}
-            <section id="now-showing" style={{ padding: '6rem 0 4rem 0', position: 'relative', zIndex: 20, maxWidth: '1440px', margin: '0 auto' }}>
-                <div style={{ padding: '0 4rem', marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            {/* ======= MOVIES CATALOGUE ======= */}
+            <section id="now-showing" style={{ padding: '6rem 4rem 4rem 4rem', position: 'relative', zIndex: 20, maxWidth: '1440px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: '2rem' }}>
                     <h2 className="font-serif" style={{ fontSize: '2.5rem', color: 'var(--c-text-primary)', margin: 0 }}>
                         NOW SHOWING
                     </h2>
-                    <div style={{ width: '200px', height: '1px', backgroundColor: 'rgba(23,23,23,0.1)', position: 'relative' }}>
-                        <div style={{
-                            position: 'absolute', top: 0, left: 0, height: '100%', width: '100%',
-                            backgroundColor: 'var(--c-gold)', transformOrigin: 'left',
-                            transform: `scaleX(${railProgress})`, transition: 'transform 0.1s linear'
-                        }} />
+                    
+                    {/* Filters */}
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        {['ALL', 'ENGLISH', 'TAMIL', 'HINDI', 'TELUGU', 'ACTION', 'SCI-FI', 'THRILLER', 'DRAMA'].map(f => {
+                            const isActive = filter === f;
+                            // Check if filter has matching movies
+                            const hasMovies = f === 'ALL' || movies.some(m => m.Language.toUpperCase() === f || m.Genre.toUpperCase().includes(f));
+                            if (!hasMovies && f !== 'ALL') return null;
+                            
+                            return (
+                                <button key={f}
+                                    onClick={() => setFilter(f)}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        backgroundColor: isActive ? 'var(--c-gold)' : 'transparent',
+                                        color: isActive ? '#fff' : 'var(--c-text-secondary)',
+                                        border: `1px solid ${isActive ? 'var(--c-gold)' : 'var(--c-border)'}`,
+                                        borderRadius: '4px',
+                                        fontSize: '0.75rem',
+                                        letterSpacing: '0.1em',
+                                        textTransform: 'uppercase',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease'
+                                    }}>
+                                    {f}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
-                <div ref={railRef} className="hide-scrollbar"
-                    style={{ display: 'flex', gap: '2.5rem', overflowX: 'auto', paddingBottom: '4rem', paddingTop: '2rem', paddingLeft: '4rem', paddingRight: '4rem', scrollSnapType: 'x mandatory' }}>
-                    <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none}` }} />
-                    {movies.map((movie, i) => (
+
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+                    gap: '2.5rem' 
+                }}>
+                    {movies
+                        .filter(m => {
+                            if (filter === 'ALL') return true;
+                            if (['ENGLISH', 'TAMIL', 'HINDI', 'TELUGU'].includes(filter)) return m.Language.toUpperCase() === filter;
+                            return m.Genre.toUpperCase().includes(filter);
+                        })
+                        .map((movie, i) => (
                         <motion.div key={movie.MovieID}
-                            initial={{ opacity: 0, x: 40 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: '0px 100px 0px 0px' }}
-                            transition={{ delay: i * 0.05, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                            style={{ minWidth: '320px', width: '320px', cursor: 'pointer', scrollSnapAlign: 'start', position: 'relative' }}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '0px 0px -50px 0px' }}
+                            transition={{ delay: (i % 4) * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                             onClick={() => navigate(`/movies/${movie.MovieID}`)}
-                            onMouseMove={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const rx = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
-                                const ry = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
-                                const w = e.currentTarget.querySelector('.poster-wrapper');
-                                w.style.transition = 'none';
-                                w.style.transform = `perspective(1000px) translateZ(20px) scale(1.04) rotateX(${ry}deg) rotateY(${rx}deg)`;
+                            style={{ 
+                                display: 'flex', flexDirection: 'column',
+                                cursor: 'pointer', position: 'relative'
                             }}
                             onMouseEnter={(e) => {
-                                e.currentTarget.querySelector('.poster-wrapper').style.transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
-                                e.currentTarget.querySelector('.gold-border').style.opacity = '1';
-                                e.currentTarget.querySelector('.poster-meta').style.transform = 'translateY(-5px)';
+                                const poster = e.currentTarget.querySelector('.movie-poster');
+                                const btn = e.currentTarget.querySelector('.book-now-btn');
+                                if (poster) poster.style.transform = 'scale(1.03)';
+                                if (btn) {
+                                    btn.style.backgroundColor = 'var(--c-gold)';
+                                    btn.style.color = '#fff';
+                                }
+                                e.currentTarget.style.transform = 'translateY(-5px)';
+                                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)';
                             }}
                             onMouseLeave={(e) => {
-                                const w = e.currentTarget.querySelector('.poster-wrapper');
-                                w.style.transition = 'transform 0.6s cubic-bezier(0.16,1,0.3,1)';
-                                w.style.transform = 'perspective(1000px) translateZ(0) scale(1) rotateX(0) rotateY(0)';
-                                e.currentTarget.querySelector('.gold-border').style.opacity = '0';
-                                e.currentTarget.querySelector('.poster-meta').style.transform = 'translateY(0)';
-                            }}>
-                            <div className="poster-wrapper" style={{
+                                const poster = e.currentTarget.querySelector('.movie-poster');
+                                const btn = e.currentTarget.querySelector('.book-now-btn');
+                                if (poster) poster.style.transform = 'scale(1)';
+                                if (btn) {
+                                    btn.style.backgroundColor = 'transparent';
+                                    btn.style.color = 'var(--c-text-primary)';
+                                }
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        >
+                            <div style={{
                                 width: '100%', aspectRatio: '2/3', backgroundColor: 'var(--c-surface)',
-                                marginBottom: '1.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
-                                position: 'relative', borderRadius: '8px', padding: '0.5rem',
-                                border: '1px solid rgba(176,138,62,0.15)', transformStyle: 'preserve-3d',
-                                transition: 'transform 0.6s cubic-bezier(0.16,1,0.3,1)'
+                                marginBottom: '1.25rem', position: 'relative', borderRadius: '8px', 
+                                overflow: 'hidden', border: '1px solid rgba(176,138,62,0.15)',
+                                transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)'
                             }}>
-                                <img src={getMoviePosterUrl(movie, i)} alt={movie.Title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
-                                <div className="gold-border" style={{ position: 'absolute', inset: '0.5rem', border: '2px solid var(--c-gold)', opacity: 0, transition: 'opacity 0.4s', borderRadius: '4px', pointerEvents: 'none' }} />
+                                <img className="movie-poster" src={getMoviePosterUrl(movie, i)} alt={movie.Title} 
+                                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease-out' }} />
+                                
+                                {/* Inner gold highlight overlay */}
+                                <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(176,138,62,0.3)', borderRadius: '8px', pointerEvents: 'none', transition: 'border-color 0.4s', zIndex: 2 }} className="poster-border" />
                             </div>
-                            <div className="poster-meta" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
-                                <span className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--c-gold)', marginTop: '0.3rem' }}>{String(i + 1).padStart(2, '0')}</span>
-                                <div>
-                                    <h3 className="font-serif" style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: 'var(--c-text-primary)', lineHeight: 1.2 }}>{movie.Title}</h3>
-                                    <div className="font-sans" style={{ color: 'var(--c-text-secondary)', fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{movie.Genre} · {movie.Language} · {movie.Duration}M</div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '0 0.5rem' }}>
+                                <h3 className="font-serif" style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--c-text-primary)', lineHeight: 1.2 }}>{movie.Title}</h3>
+                                
+                                <div className="font-sans" style={{ color: 'var(--c-text-secondary)', fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span>{movie.Genre}</span>
+                                    <span>·</span>
+                                    <span>{movie.Language}</span>
+                                    <span>·</span>
+                                    <span>{movie.Duration}M</span>
+                                </div>
+                                
+                                <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                                    <button className="book-now-btn font-sans" style={{
+                                        width: '100%', padding: '0.75rem', backgroundColor: 'transparent',
+                                        color: 'var(--c-text-primary)', border: '1px solid var(--c-gold)',
+                                        borderRadius: '4px', fontSize: '0.75rem', letterSpacing: '0.1em',
+                                        textTransform: 'uppercase', fontWeight: 600, transition: 'all 0.3s ease',
+                                        cursor: 'pointer'
+                                    }}>
+                                        BOOK NOW
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>
                     ))}
-                    <div style={{ minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span className="font-sans" style={{ color: 'var(--c-text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>END OF LIST</span>
-                    </div>
                 </div>
             </section>
         </div>

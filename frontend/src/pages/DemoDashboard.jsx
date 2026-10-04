@@ -96,7 +96,7 @@ export default function DemoDashboard() {
             else if (labTab === 'BOOKINGS') sql = `UPDATE BOOKING SET Status = '${escapeSql(labFormData.Status)}' WHERE BookingID = ${labFormData.BookingID};`;
             else if (labTab === 'SHOWS') sql = `UPDATE \`SHOW\` SET ShowDate = '${escapeSql(labFormData.ShowDate)}', ShowTime = '${escapeSql(labFormData.ShowTime)}', Price = ${labFormData.Price}, MovieID = ${labFormData.MovieID}, ScreenID = ${labFormData.ScreenID} WHERE ShowID = ${labFormData.ShowID};`;
         }
-        
+
         setRawSqlText(sql);
         setLabModalOpen(false);
         setRawSqlModalOpen(true);
@@ -108,7 +108,7 @@ export default function DemoDashboard() {
         else if (labTab === 'THEATRES') sql = `DELETE FROM THEATRE WHERE TheatreID = ${id};`;
         else if (labTab === 'BOOKINGS') sql = `DELETE FROM BOOKING WHERE BookingID = ${id};`;
         else if (labTab === 'SHOWS') sql = `DELETE FROM \`SHOW\` WHERE ShowID = ${id};`;
-        
+
         setRawSqlText(sql);
         setRawSqlModalOpen(true);
     };
@@ -121,18 +121,18 @@ export default function DemoDashboard() {
                 body: JSON.stringify({ sql: rawSqlText })
             });
             const data = await res.json();
-            
+
             if (res.ok) {
                 setLabSqlLog(rawSqlText + '\\n\\n-- Result:\\n' + JSON.stringify(data.result, null, 2));
                 setRawSqlModalOpen(false);
-                
+
                 if (labTab === 'MOVIES') fetchMovies();
                 else if (labTab === 'THEATRES') fetchTheatres();
                 else if (labTab === 'BOOKINGS') fetchBookings();
                 else if (labTab === 'SHOWS') fetchShows();
                 else if (labTab === 'USERS') fetchUsers();
                 else if (labTab === 'USERS') fetchUsers();
-                
+
                 fetchStats();
             } else {
                 alert('SQL Error: ' + (data.message || data.error));
@@ -143,7 +143,7 @@ export default function DemoDashboard() {
         }
     };
 
-    
+
     useEffect(() => {
         fetchStats();
     }, []);
@@ -163,45 +163,45 @@ export default function DemoDashboard() {
     };
 
     const addLog = (msg) => {
-        setLogs(prev => [...prev, `[${new Date().toISOString().split('T')[1].substring(0,8)}] ${msg}`]);
+        setLogs(prev => [...prev, `[${new Date().toISOString().split('T')[1].substring(0, 8)}] ${msg}`]);
     };
 
     const runConcurrencyTest = async () => {
         setTestingConcurrency(true);
         setLogs([]);
         setQueueDemoState({ pending: 10, processing: 0, completed: 0, failed: 0 });
-        
+
         try {
             addLog("=== CONCURRENCY TEST INITIALIZATION ===");
             addLog("Scanning database for currently AVAILABLE contiguous seats on Show 1...");
             const seatsRes = await fetchWithAuth(`${API_URL}/shows/1/seats`);
             const seats = await seatsRes.json();
-            
+
             if (!Array.isArray(seats)) {
                 throw new Error("Unable to fetch seats from backend.");
             }
 
             const availableSeats = seats.filter(s => s.Status === 'AVAILABLE');
-            
+
             if (availableSeats.length < 2) {
                 addLog("Error: Show 1 has fewer than 2 available seats remaining. Reset seed data.");
                 setTestingConcurrency(false);
                 return;
             }
-            
+
             const targetSeatObjs = [availableSeats[0], availableSeats[1]];
             const targetSeatIds = targetSeatObjs.map(s => s.SeatID);
             const seatNames = targetSeatObjs.map(s => s.SeatNumber).join(', ');
 
             addLog(`Target: Show 1 | Seats: ${seatNames}`);
             addLog(`Dispatching 10 simultaneous POST /bookings requests...`);
-            
+
             // Visual delay to simulate queueing in UI
             await new Promise(r => setTimeout(r, 800));
             setQueueDemoState(prev => ({ ...prev, processing: 10 }));
 
             addLog(`[DB] EXECUTING: SELECT ... FOR UPDATE (Row-Level Lock)`);
-            
+
             const requests = Array.from({ length: 10 }, (_, i) => {
                 const reqId = i + 1;
                 return fetchWithAuth(`${API_URL}/bookings`, {
@@ -210,13 +210,13 @@ export default function DemoDashboard() {
                     body: JSON.stringify({ showId: 1, seatIds: targetSeatIds, paymentMode: 'UPI' })
                 }).then(async res => {
                     let data = {};
-                    try { data = await res.json(); } catch(e) {}
+                    try { data = await res.json(); } catch (e) { }
                     return { status: res.status, reqId, data };
                 });
             });
 
             const results = await Promise.all(requests);
-            
+
             let successCount = 0;
             let conflictCount = 0;
 
@@ -238,7 +238,7 @@ export default function DemoDashboard() {
             addLog(`--------------------------------------------------`);
             addLog(`✔ ACID TEST PASSED: 1 transaction committed, ${conflictCount} transactions safely rolled back.`);
             addLog(`✔ VERIFICATION: Zero duplicate seats assigned under heavy race condition.`);
-            
+
             fetchStats();
         } catch (err) {
             addLog(`Error: ${err.message}`);
@@ -251,12 +251,12 @@ export default function DemoDashboard() {
         setTestingRateLimit(true);
         setLogs([]);
         addLog(`=== RATE LIMITING TEST (${rateLimitState.limit} req / ${rateLimitState.windowMinutes} min) ===`);
-        
+
         for (let i = 1; i <= 12; i++) {
             try {
                 const res = await fetchWithAuth(`${API_URL}/admin/rate-limit-test`);
                 const data = await res.json();
-                
+
                 setRateLimitState({
                     limit: data.limit || 10,
                     windowMinutes: 5,
@@ -314,37 +314,55 @@ export default function DemoDashboard() {
     ];
 
     return (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            style={{ 
-                padding: '8rem 4rem 4rem 4rem', 
-                maxWidth: '1440px', 
-                margin: '0 auto', 
-                color: 'var(--c-text-primary)',
-                minHeight: '100vh',
-                backgroundColor: 'var(--c-bg-main)'
-            }}
-        >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '1px solid rgba(176,138,62,0.2)' }}>
-                <div>
-                    <h2 className="font-serif" style={{ margin: '0 0 0.5rem 0', fontSize: '3.5rem', letterSpacing: '-0.02em', fontWeight: 400 }}>
-                        DBMS Control
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--c-bg-main)', color: 'var(--c-text-primary)' }}>
+            
+            {/* Sidebar */}
+            <div style={{ width: '250px', backgroundColor: 'var(--c-surface)', borderRight: '1px solid rgba(176,138,62,0.2)', padding: '2rem 0', display: 'flex', flexDirection: 'column', flexShrink: 0, zIndex: 10 }}>
+                <div style={{ padding: '0 2rem', marginBottom: '3rem' }}>
+                    <h2 className="font-serif" style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', letterSpacing: '-0.02em', fontWeight: 600 }}>
+                        Control Center
                     </h2>
-                    <p className="font-mono" style={{ color: 'var(--c-text-secondary)', margin: 0, fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                        Database Analytics & System Verification
+                    <p className="font-mono" style={{ color: 'var(--c-text-secondary)', margin: 0, fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                        System Monitor
                     </p>
                 </div>
-                <button 
-                    onClick={fetchStats} 
-                    style={{ 
-                        padding: '1rem 2rem', 
-                        border: '1px solid var(--c-gold)', 
-                        background: 'transparent', 
-                        color: 'var(--c-text-primary)', 
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ padding: '1rem 2rem', fontSize: '0.7rem', color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Dashboard</div>
+                    <a href="#overview" style={{ padding: '0.75rem 2rem', color: 'var(--c-text-primary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, borderLeft: '3px solid var(--c-gold)', backgroundColor: 'rgba(176,138,62,0.05)' }}>Overview & Metrics</a>
+                    <a href="#infrastructure" style={{ padding: '0.75rem 2rem', color: 'var(--c-text-secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500, borderLeft: '3px solid transparent' }}>Infrastructure</a>
+                    <a href="#system-monitor" style={{ padding: '0.75rem 2rem', color: 'var(--c-text-secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500, borderLeft: '3px solid transparent' }}>System Monitor</a>
+                    <a href="#query-explorer" style={{ padding: '0.75rem 2rem', color: 'var(--c-text-secondary)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500, borderLeft: '3px solid transparent' }}>Query Explorer</a>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '4rem 3rem' }}>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    style={{ maxWidth: '1200px', margin: '0 auto' }}
+                >
+            
+            {/* Header */}
+            <div id="overview" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '1px solid rgba(176,138,62,0.2)' }}>
+                <div>
+                    <h2 className="font-serif" style={{ margin: '0 0 0.5rem 0', fontSize: '2.5rem', letterSpacing: '-0.02em', fontWeight: 400 }}>
+                        System Overview
+                    </h2>
+                    <p className="font-mono" style={{ color: 'var(--c-text-secondary)', margin: 0, fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                        Live Metrics & Health
+                    </p>
+                </div>
+                <button
+                    onClick={fetchStats}
+                    style={{
+                        padding: '1rem 2rem',
+                        border: '1px solid var(--c-gold)',
+                        background: 'transparent',
+                        color: 'var(--c-text-primary)',
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                         fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer',
                         transition: 'all 0.3s ease',
@@ -427,8 +445,8 @@ export default function DemoDashboard() {
             {/* Metrics Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1px', backgroundColor: 'rgba(176,138,62,0.2)', border: '1px solid rgba(176,138,62,0.2)', marginBottom: '4rem', borderRadius: '8px', overflow: 'hidden' }}>
                 {statCards.map((c, i) => (
-                    <motion.div 
-                        key={i} 
+                    <motion.div
+                        key={i}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
@@ -445,21 +463,21 @@ export default function DemoDashboard() {
             </div>
 
             {/* Infrastructure Verifier Grid */}
-            <h3 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--c-text-primary)' }}>Infrastructure Verification</h3>
-            
+            <h3 id="infrastructure" className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--c-text-primary)', paddingTop: '2rem' }}>Infrastructure Verification</h3>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '4rem' }}>
-                
+
                 {/* Concurrency Section */}
                 <div style={{ border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', padding: '3rem', borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                         <Database size={20} color="var(--c-gold)" />
                         <h3 className="font-mono" style={{ margin: 0, fontSize: '0.9rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--c-text-primary)', fontWeight: 600 }}>Transaction Isolation</h3>
                     </div>
-                    
+
                     <p className="font-sans" style={{ color: 'var(--c-text-secondary)', marginBottom: '3rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
                         Dispatches 10 parallel booking requests for the exact same seats to verify MySQL InnoDB row-level locking (<code>SELECT ... FOR UPDATE</code>). Only one transaction should commit.
                     </p>
-                    
+
                     {/* Visual Pipeline */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(176,138,62,0.1)', paddingBottom: '0.5rem' }}>
@@ -480,12 +498,12 @@ export default function DemoDashboard() {
                         </div>
                     </div>
 
-                    <button 
-                        onClick={runConcurrencyTest} 
+                    <button
+                        onClick={runConcurrencyTest}
                         disabled={testingConcurrency}
-                        style={{ 
-                            width: '100%', padding: '1.25rem', 
-                            background: testingConcurrency ? 'var(--c-surface-warm)' : 'var(--c-gold)', 
+                        style={{
+                            width: '100%', padding: '1.25rem',
+                            background: testingConcurrency ? 'var(--c-surface-warm)' : 'var(--c-gold)',
                             color: testingConcurrency ? 'var(--c-text-muted)' : 'var(--c-surface)',
                             border: testingConcurrency ? '1px solid var(--c-surface-warm)' : 'none',
                             textTransform: 'uppercase', letterSpacing: '0.15em', fontSize: '0.75rem', fontWeight: 600,
@@ -505,7 +523,7 @@ export default function DemoDashboard() {
                             <Shield size={20} color="var(--c-gold)" />
                             <h3 className="font-mono" style={{ margin: 0, fontSize: '0.9rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--c-text-primary)', fontWeight: 600 }}>API Rate Limiter</h3>
                         </div>
-                        <span className="font-mono" style={{ 
+                        <span className="font-mono" style={{
                             padding: '0.25rem 0.5rem', fontSize: '0.65rem', letterSpacing: '0.1em',
                             background: rateLimitState.status === 'ALLOWED' ? 'transparent' : 'rgba(124, 31, 42, 0.1)',
                             color: rateLimitState.status === 'ALLOWED' ? 'var(--c-text-muted)' : 'var(--c-burgundy)',
@@ -527,10 +545,10 @@ export default function DemoDashboard() {
                             </span>
                         </div>
                         <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--c-surface-warm)', overflow: 'hidden', position: 'relative', borderRadius: '2px' }}>
-                            <div style={{ 
+                            <div style={{
                                 position: 'absolute',
                                 left: 0, top: 0,
-                                height: '100%', 
+                                height: '100%',
                                 width: `${Math.min((rateLimitState.currentRequests / rateLimitState.limit) * 100, 100)}%`,
                                 backgroundColor: rateLimitState.currentRequests > rateLimitState.limit ? 'var(--c-burgundy)' : 'var(--c-gold)',
                                 transition: 'width 0.3s ease, background-color 0.3s ease'
@@ -539,11 +557,11 @@ export default function DemoDashboard() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button 
-                            onClick={runRateLimitTest} 
+                        <button
+                            onClick={runRateLimitTest}
                             disabled={testingRateLimit}
-                            style={{ 
-                                flex: 1, padding: '1.25rem', 
+                            style={{
+                                flex: 1, padding: '1.25rem',
                                 background: 'transparent',
                                 color: 'var(--c-text-primary)',
                                 border: '1px solid var(--c-gold)',
@@ -553,13 +571,13 @@ export default function DemoDashboard() {
                                 borderRadius: '4px'
                             }}
                             onMouseEnter={(e) => {
-                                if(!testingRateLimit) {
+                                if (!testingRateLimit) {
                                     e.currentTarget.style.backgroundColor = 'var(--c-gold)';
                                     e.currentTarget.style.color = 'var(--c-surface)';
                                 }
                             }}
                             onMouseLeave={(e) => {
-                                if(!testingRateLimit) {
+                                if (!testingRateLimit) {
                                     e.currentTarget.style.backgroundColor = 'transparent';
                                     e.currentTarget.style.color = 'var(--c-text-primary)';
                                 }
@@ -567,9 +585,9 @@ export default function DemoDashboard() {
                         >
                             <Play size={14} /> {testingRateLimit ? 'Simulating...' : 'Test Burst'}
                         </button>
-                        <button 
-                            onClick={resetRateLimit} 
-                            style={{ 
+                        <button
+                            onClick={resetRateLimit}
+                            style={{
                                 padding: '0 1.5rem', background: 'transparent', border: '1px solid rgba(176,138,62,0.2)',
                                 color: 'var(--c-text-muted)', cursor: 'pointer', transition: 'all 0.3s', borderRadius: '4px'
                             }}
@@ -584,7 +602,7 @@ export default function DemoDashboard() {
 
             {/* Execution Console */}
             {logs.length > 0 && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{ marginBottom: '4rem', background: 'var(--c-surface)', border: '1px solid rgba(176,138,62,0.2)', borderRadius: '8px', overflow: 'hidden' }}
@@ -603,7 +621,7 @@ export default function DemoDashboard() {
                             else if (log.includes('Double-Booking Prevented') || log.includes('Blocked by InnoDB')) color = 'var(--c-gold-dark)';
                             else if (log.includes('Error') || log.includes('Rejected') || log.includes('Failed')) color = 'var(--c-burgundy)';
                             else if (log.includes('[DB]')) color = 'var(--c-gold)';
-                            
+
                             return (
                                 <div key={i} style={{ color, fontWeight: log.includes('✔') ? 600 : 400 }}>{log}</div>
                             );
@@ -613,16 +631,16 @@ export default function DemoDashboard() {
             )}
 
             {/* DATABASE MANIPULATION LAB */}
-            <h3 className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--c-text-primary)' }}>Database Manipulation Lab</h3>
+            <h3 id="system-monitor" className="font-serif" style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--c-text-primary)', paddingTop: '2rem' }}>System Monitor</h3>
             <p className="font-sans" style={{ color: 'var(--c-text-secondary)', marginBottom: '2rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                Use SQL-backed controls to demonstrate how records can be inserted, updated, and deleted from the CineTicket database.
+                Professional dense data view for database management. Modify records directly via SQL.
             </p>
 
             <div style={{ border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', marginBottom: '4rem' }}>
                 {/* Tabs */}
                 <div style={{ display: 'flex', borderBottom: '1px solid rgba(176,138,62,0.2)' }}>
                     {['MOVIES', 'THEATRES', 'SHOWS', 'BOOKINGS'].map((tab, idx) => (
-                        <button 
+                        <button
                             key={tab}
                             onClick={() => { setLabTab(tab); setLabSqlLog(null); }}
                             className="font-mono"
@@ -652,11 +670,11 @@ export default function DemoDashboard() {
                             {labTab} TABLE
                         </h4>
                         {labTab !== 'BOOKINGS' && (
-                            <button 
+                            <button
                                 onClick={() => { setLabModalMode('ADD'); setLabFormData({}); setLabModalOpen(true); }}
                                 className="font-sans"
-                                style={{ 
-                                    background: 'var(--c-gold)', 
+                                style={{
+                                    background: 'var(--c-gold)',
                                     border: 'none',
                                     color: 'var(--c-surface)',
                                     fontSize: '0.75rem',
@@ -679,40 +697,42 @@ export default function DemoDashboard() {
                                 <thead>
                                     <tr>
                                         {Object.keys(labData[0]).map(key => (
-                                            <th key={key} className="font-mono" style={{ padding: '1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600 }}>
+                                            <th key={key} className="font-mono" style={{ padding: '0.5rem 1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600 }}>
                                                 {key}
                                             </th>
                                         ))}
-                                        <th className="font-mono" style={{ padding: '1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600, textAlign: 'right' }}>
+                                        <th className="font-mono" style={{ padding: '0.5rem 1rem', color: 'var(--c-text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '1px solid rgba(176,138,62,0.2)', fontWeight: 600, textAlign: 'right' }}>
                                             ACTIONS
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {labData.map((row, i) => (
-                                        <tr key={i}>
+                                        <tr key={i} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)' }}>
                                             {Object.values(row).map((val, j) => {
                                                 let displayVal = String(val ?? '');
                                                 if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
                                                     displayVal = val.split('T')[0];
                                                 }
+                                                // Make IDs monospace
+                                                const isId = Object.keys(row)[j].toLowerCase().includes('id');
                                                 return (
-                                                    <td key={j} className="font-sans" style={{ padding: '1rem', color: 'var(--c-text-primary)', fontSize: '0.85rem', borderBottom: '1px solid rgba(176,138,62,0.1)' }}>
+                                                    <td key={j} className={isId ? "font-mono" : "font-sans"} style={{ padding: '0.5rem 1rem', color: 'var(--c-text-primary)', fontSize: isId ? '0.75rem' : '0.85rem', borderBottom: '1px solid rgba(176,138,62,0.1)' }}>
                                                         {displayVal}
                                                     </td>
                                                 );
                                             })}
-                                            <td style={{ padding: '1rem', borderBottom: '1px solid rgba(176,138,62,0.1)', textAlign: 'right' }}>
+                                            <td style={{ padding: '0.5rem 1rem', borderBottom: '1px solid rgba(176,138,62,0.1)', textAlign: 'right' }}>
                                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                    <button 
-                                                        onClick={() => { setLabModalMode('EDIT'); setLabFormData({...row}); setLabModalOpen(true); }}
-                                                        style={{ background: 'transparent', border: '1px solid var(--c-gold)', color: 'var(--c-gold)', padding: '0.25rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
+                                                    <button
+                                                        onClick={() => { setLabModalMode('EDIT'); setLabFormData({ ...row }); setLabModalOpen(true); }}
+                                                        style={{ background: 'transparent', border: '1px solid var(--c-gold)', color: 'var(--c-gold)', padding: '0.2rem 0.4rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
                                                     >
                                                         Edit
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleLabDelete(row.ShowID || row.BookingID || row.TheatreID || row.MovieID)}
-                                                        style={{ background: 'transparent', border: '1px solid var(--c-burgundy)', color: 'var(--c-burgundy)', padding: '0.25rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
+                                                        style={{ background: 'transparent', border: '1px solid var(--c-burgundy)', color: 'var(--c-burgundy)', padding: '0.2rem 0.4rem', fontSize: '0.6rem', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase' }}
                                                     >
                                                         Delete
                                                     </button>
@@ -731,7 +751,7 @@ export default function DemoDashboard() {
 
                     <AnimatePresence>
                         {labSqlLog && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
@@ -755,7 +775,7 @@ export default function DemoDashboard() {
             <AnimatePresence>
                 {labModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(23, 23, 23, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
@@ -769,23 +789,23 @@ export default function DemoDashboard() {
                                     <>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Title</label>
-                                            <input required type="text" value={labFormData.Title || ''} onChange={e => setLabFormData({...labFormData, Title: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.Title || ''} onChange={e => setLabFormData({ ...labFormData, Title: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Genre</label>
-                                            <input required type="text" value={labFormData.Genre || ''} onChange={e => setLabFormData({...labFormData, Genre: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.Genre || ''} onChange={e => setLabFormData({ ...labFormData, Genre: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Language</label>
-                                            <input required type="text" value={labFormData.Language || ''} onChange={e => setLabFormData({...labFormData, Language: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.Language || ''} onChange={e => setLabFormData({ ...labFormData, Language: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Duration (mins)</label>
-                                            <input required type="number" value={labFormData.Duration || ''} onChange={e => setLabFormData({...labFormData, Duration: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="number" value={labFormData.Duration || ''} onChange={e => setLabFormData({ ...labFormData, Duration: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '2rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Release Date</label>
-                                            <input required type="date" value={labFormData.ReleaseDate ? labFormData.ReleaseDate.split('T')[0] : ''} onChange={e => setLabFormData({...labFormData, ReleaseDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="date" value={labFormData.ReleaseDate ? labFormData.ReleaseDate.split('T')[0] : ''} onChange={e => setLabFormData({ ...labFormData, ReleaseDate: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                     </>
                                 )}
@@ -793,15 +813,15 @@ export default function DemoDashboard() {
                                     <>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Name</label>
-                                            <input required type="text" value={labFormData.Name || ''} onChange={e => setLabFormData({...labFormData, Name: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.Name || ''} onChange={e => setLabFormData({ ...labFormData, Name: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Location</label>
-                                            <input required type="text" value={labFormData.Location || ''} onChange={e => setLabFormData({...labFormData, Location: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.Location || ''} onChange={e => setLabFormData({ ...labFormData, Location: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '2rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>City</label>
-                                            <input required type="text" value={labFormData.City || ''} onChange={e => setLabFormData({...labFormData, City: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="text" value={labFormData.City || ''} onChange={e => setLabFormData({ ...labFormData, City: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                     </>
                                 )}
@@ -809,7 +829,7 @@ export default function DemoDashboard() {
                                     <>
                                         <div style={{ marginBottom: '2rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Status</label>
-                                            <select required value={labFormData.Status || ''} onChange={e => setLabFormData({...labFormData, Status: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }}>
+                                            <select required value={labFormData.Status || ''} onChange={e => setLabFormData({ ...labFormData, Status: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }}>
                                                 <option value="PENDING">PENDING</option>
                                                 <option value="CONFIRMED">CONFIRMED</option>
                                                 <option value="CANCELLED">CANCELLED</option>
@@ -822,23 +842,23 @@ export default function DemoDashboard() {
                                     <>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Movie ID</label>
-                                            <input required type="number" value={labFormData.MovieID || ''} onChange={e => setLabFormData({...labFormData, MovieID: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="number" value={labFormData.MovieID || ''} onChange={e => setLabFormData({ ...labFormData, MovieID: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Screen ID</label>
-                                            <input required type="number" value={labFormData.ScreenID || ''} onChange={e => setLabFormData({...labFormData, ScreenID: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="number" value={labFormData.ScreenID || ''} onChange={e => setLabFormData({ ...labFormData, ScreenID: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Show Date</label>
-                                            <input required type="date" value={labFormData.ShowDate ? labFormData.ShowDate.split('T')[0] : ''} onChange={e => setLabFormData({...labFormData, ShowDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="date" value={labFormData.ShowDate ? labFormData.ShowDate.split('T')[0] : ''} onChange={e => setLabFormData({ ...labFormData, ShowDate: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Show Time</label>
-                                            <input required type="time" step="1" value={labFormData.ShowTime || ''} onChange={e => setLabFormData({...labFormData, ShowTime: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="time" step="1" value={labFormData.ShowTime || ''} onChange={e => setLabFormData({ ...labFormData, ShowTime: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                         <div style={{ marginBottom: '2rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--c-text-muted)' }}>Price</label>
-                                            <input required type="number" step="0.01" value={labFormData.Price || ''} onChange={e => setLabFormData({...labFormData, Price: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
+                                            <input required type="number" step="0.01" value={labFormData.Price || ''} onChange={e => setLabFormData({ ...labFormData, Price: e.target.value })} style={{ width: '100%', padding: '0.75rem', border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', color: 'var(--c-text-primary)', borderRadius: '4px' }} />
                                         </div>
                                     </>
                                 )}
@@ -857,7 +877,7 @@ export default function DemoDashboard() {
             <AnimatePresence>
                 {rawSqlModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(23, 23, 23, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
@@ -869,14 +889,14 @@ export default function DemoDashboard() {
                             <p className="font-sans" style={{ color: 'var(--c-text-secondary)', marginBottom: '2rem', fontSize: '0.85rem' }}>
                                 The query below was generated based on your request. You can edit it before executing it directly against the database.
                             </p>
-                            
-                            <textarea 
+
+                            <textarea
                                 value={rawSqlText}
                                 onChange={(e) => setRawSqlText(e.target.value)}
                                 className="font-mono"
                                 style={{ width: '100%', minHeight: '150px', padding: '1rem', backgroundColor: 'var(--c-surface-warm)', border: '1px solid var(--c-gold)', color: 'var(--c-gold-dark)', borderRadius: '8px', marginBottom: '2rem', resize: 'vertical' }}
                             />
-                            
+
                             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                                 <button type="button" onClick={() => setRawSqlModalOpen(false)} style={{ padding: '0.75rem 1.5rem', background: 'transparent', border: '1px solid rgba(176,138,62,0.2)', color: 'var(--c-text-muted)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Cancel</button>
                                 <button type="button" onClick={handleRawSqlSubmit} style={{ padding: '0.75rem 1.5rem', background: 'var(--c-gold)', border: 'none', color: 'var(--c-surface)', cursor: 'pointer', borderRadius: '4px', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Execute SQL</button>
@@ -887,8 +907,8 @@ export default function DemoDashboard() {
             </AnimatePresence>
 
             {/* SQL Explorer */}
-            <h3 className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--c-text-primary)' }}>Query Explorer</h3>
-            
+            <h3 id="query-explorer" className="font-serif" style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--c-text-primary)', paddingTop: '2rem' }}>Query Explorer</h3>
+
             <div style={{ border: '1px solid rgba(176,138,62,0.2)', background: 'var(--c-surface)', borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
                 <div style={{ padding: '3rem' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '3rem' }}>
@@ -899,12 +919,12 @@ export default function DemoDashboard() {
                             { id: 'high-value-customers', label: 'High-Value Customers' },
                             { id: 'occupancy-rate', label: 'Global Occupancy' },
                         ].map(btn => (
-                            <button 
+                            <button
                                 key={btn.id}
                                 onClick={() => runSqlDemo(btn.id)}
                                 className="font-sans"
-                                style={{ 
-                                    background: 'transparent', 
+                                style={{
+                                    background: 'transparent',
                                     border: '1px solid var(--c-gold)',
                                     color: 'var(--c-text-primary)',
                                     fontSize: '0.75rem',
@@ -926,7 +946,7 @@ export default function DemoDashboard() {
 
                     <AnimatePresence mode="wait">
                         {sqlDemoResult && (
-                            <motion.div 
+                            <motion.div
                                 key={sqlDemoResult.description}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -936,8 +956,8 @@ export default function DemoDashboard() {
                                     <div className="font-sans" style={{ color: 'var(--c-text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 600 }}>
                                         {sqlDemoResult.description}
                                     </div>
-                                    <pre className="font-mono" style={{ 
-                                        color: 'var(--c-gold-dark)', 
+                                    <pre className="font-mono" style={{
+                                        color: 'var(--c-gold-dark)',
                                         fontSize: '0.85rem',
                                         overflowX: 'auto',
                                         margin: 0,
@@ -947,7 +967,7 @@ export default function DemoDashboard() {
                                         {sqlDemoResult.sql}
                                     </pre>
                                 </div>
-                                
+
                                 <div style={{ overflowX: 'auto' }}>
                                     {sqlDemoResult.data && sqlDemoResult.data.length > 0 ? (
                                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -989,6 +1009,8 @@ export default function DemoDashboard() {
                     </AnimatePresence>
                 </div>
             </div>
-        </motion.div>
+                </motion.div>
+            </div>
+        </div>
     );
 }

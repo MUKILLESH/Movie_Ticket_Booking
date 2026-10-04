@@ -25,30 +25,30 @@ export default function BookingConfirmation() {
 
 
     if (loading) return null;
-    
+
     if (!booking || booking.error) return <div style={{ textAlign: 'center', padding: '10rem', color: 'var(--c-text-primary)' }}>Error retrieving ticket.</div>;
 
     const dateStr = booking.ShowDate.split('T')[0];
-    const timeStr = booking.ShowTime.substring(0,5);
+    const timeStr = booking.ShowTime.substring(0, 5);
     const posterUrl = getMoviePosterUrl({ Title: booking.MovieTitle });
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ backgroundColor: 'var(--c-bg-main)' }}
-            animate={{ backgroundColor: 'var(--c-bg-main)' }} 
+            animate={{ backgroundColor: 'var(--c-bg-main)' }}
             transition={{ duration: 1 }}
-            style={{ 
-                minHeight: '100vh', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
+            style={{
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 justifyContent: 'center',
                 padding: '4rem 2rem',
                 position: 'relative',
                 overflow: 'hidden'
             }}
         >
-            <motion.div 
+            <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
@@ -60,13 +60,13 @@ export default function BookingConfirmation() {
             </motion.div>
 
             {/* Premium Physical Ticket */}
-            <motion.div 
+            <motion.div
                 initial={{ rotate: -8, y: 100, opacity: 0, scale: 0.9 }}
                 animate={{ rotate: 0, y: 0, opacity: 1, scale: 1 }}
                 transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
-                style={{ 
-                    width: '100%', 
-                    maxWidth: '850px', 
+                style={{
+                    width: '100%',
+                    maxWidth: '850px',
                     background: 'var(--c-surface)', // crisp white paper
                     display: 'flex',
                     boxShadow: '0 30px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(176,138,62,0.1)',
@@ -88,11 +88,11 @@ export default function BookingConfirmation() {
 
                 {/* Poster Side (Left) */}
                 <div style={{ width: '35%', position: 'relative', overflow: 'hidden', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px' }}>
-                    <motion.img 
+                    <motion.img
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.95 }}
                         transition={{ delay: 1, duration: 1 }}
-                        src={posterUrl} 
+                        src={posterUrl}
                         alt={booking.MovieTitle}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -101,7 +101,7 @@ export default function BookingConfirmation() {
 
                 {/* Details Side (Right) */}
                 <div style={{ flex: 1, padding: '4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.2 }}>
                             <div className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--c-gold)', letterSpacing: '0.15em', marginBottom: '1rem', fontWeight: 700 }}>
@@ -131,15 +131,15 @@ export default function BookingConfirmation() {
                         </div>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.6 }}
-                        style={{ 
-                            padding: '1.5rem 0', 
+                        style={{
+                            padding: '1.5rem 0',
                             borderTop: '1px solid rgba(176,138,62,0.2)',
                             borderBottom: '1px solid rgba(176,138,62,0.2)',
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center' 
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
                         }}
                     >
                         <div>
@@ -161,10 +161,10 @@ export default function BookingConfirmation() {
                     </motion.div>
 
                     {/* Perforation Line & QR Code */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.8 }}
-                        style={{ 
-                            marginTop: '3rem', 
+                        style={{
+                            marginTop: '3rem',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'flex-end'
@@ -181,7 +181,7 @@ export default function BookingConfirmation() {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--c-gold)' }}>
                             <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: 'rgba(176,138,62,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Check size={10} strokeWidth={3} />
@@ -198,13 +198,13 @@ export default function BookingConfirmation() {
                 </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 2.2 }}
                 style={{ marginTop: '4rem', zIndex: 10 }}
             >
-                <Link to="/" style={{ 
+                <Link to="/" style={{
                     display: 'inline-block',
                     padding: '1rem 3rem',
                     color: 'var(--c-text-primary)',
@@ -215,14 +215,14 @@ export default function BookingConfirmation() {
                     transition: 'all 0.3s ease',
                     fontWeight: 600
                 }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--c-surface)';
-                    e.currentTarget.style.backgroundColor = 'var(--c-gold)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--c-text-primary)';
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--c-surface)';
+                        e.currentTarget.style.backgroundColor = 'var(--c-gold)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--c-text-primary)';
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                 >
                     RETURN TO REPERTOIRE
                 </Link>

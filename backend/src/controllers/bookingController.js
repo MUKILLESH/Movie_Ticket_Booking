@@ -108,7 +108,20 @@ exports.getMyBookings = async (req, res, next) => {
     try {
         const customerId = req.user.id;
         const [bookings] = await pool.query(`
-            SELECT b.BookingID, b.BookingDate, b.TotalAmount, b.Status, m.Title as MovieTitle, t.Name as TheatreName
+            SELECT 
+                b.BookingID, 
+                b.BookingDate, 
+                b.TotalAmount, 
+                b.Status, 
+                m.Title as MovieTitle, 
+                m.PosterURL,
+                t.Name as TheatreName,
+                s.ShowDate,
+                s.StartTime,
+                (SELECT GROUP_CONCAT(se.SeatNumber SEPARATOR ', ') 
+                 FROM TICKET tk 
+                 JOIN SEAT se ON tk.SeatID = se.SeatID 
+                 WHERE tk.BookingID = b.BookingID) as Seats
             FROM BOOKING b
             JOIN \`SHOW\` s ON b.ShowID = s.ShowID
             JOIN MOVIE m ON s.MovieID = m.MovieID
