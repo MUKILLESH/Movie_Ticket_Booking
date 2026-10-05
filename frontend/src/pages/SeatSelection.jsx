@@ -1,141 +1,324 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { PerspectiveCamera, SpotLight, Text } from '@react-three/drei';
+import * as THREE from 'three';
+import { fetchSeatsForShow, recommendSeats, createBooking } from '../services/api';
 import { ArrowLeft, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { fetchSeatsForShow, recommendSeats, createBooking } from '../services/api';
 
-// --- 2D Seat Grid Component ---
-function SeatGrid({ seats, selectedSeats, recommendedSeats, onSeatClick, algorithmState }) {
-    // Group seats by row (assuming SeatNumber is like 'A1', 'A2')
-    const rows = {};
-    seats.forEach(seat => {
-        const row = seat.SeatNumber.charAt(0);
-        if (!rows[row]) rows[row] = [];
-        rows[row].push(seat);
+// --- Detailed 3D Seat Component ---
+function Seat3D({ position, seatData, status, onClick, isAnalyzing }) {
+    const groupRef = useRef();
+    const [hovered, setHovered] = useState(false);
+
+    // Light Theme Colors
+    const colors = {
+        available: '#7C1F2A',     // Burgundy
+        booked: '#292622',        // Dark charcoal
+        selected: '#5D111A',      // Darker Burgundy
+        recommended: '#B08A3E',   // Gold
+    };
+
+    const isAvailable = status !== 'booked';
+    const isRecommended = status === 'recommended';
+    const isSelected = status === 'selected';
+    
+    // Elevate and move forward selected/recommended seats slightly
+    const targetY = (hovered && isAvailable && !isAnalyzing) || isRecommended || isSelected ? position[1] + 0.2 : position[1];
+    const targetZ = (hovered && isAvailable && !isAnalyzing) || isRecommended || isSelected ? position[2] + 0.1 : position[2];
+    
+    useFrame((state, delta) => {
+        if (groupRef.current) {
+            groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.1);
+            groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1);
+            
+            if (hovered && isAvailable && !isAnalyzing) {
+                // Subtle scale up on hover
+                groupRef.current.scale.lerp(new THREE.Vector3(1.02, 1.02, 1.02), 0.15);
+            } else {
+                groupRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.15);
+            }
+        }
     });
 
-    // Sort rows (A-Z) and seats within rows by number
-    const sortedRows = Object.keys(rows).sort();
-    sortedRows.forEach(row => {
-        rows[row].sort((a, b) => {
-            const numA = parseInt(a.SeatNumber.slice(1));
-            const numB = parseInt(b.SeatNumber.slice(1));
-            return numA - numB;
-        });
+    const cushionMat = new THREE.MeshStandardMaterial({
+        color: colors[status],
+        roughness: 0.9,
+        metalness: 0.1,
+    });
+
+    const frameMat = new THREE.MeshStandardMaterial({
+        color: '#171615',
+        roughness: 0.7,
+        metalness: 0.5,
     });
 
     return (
-        <div style={{ padding: '2rem 4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+        <group position={position} ref={groupRef}>
+            <group
+                onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
+                onPointerOut={() => setHovered(false)}
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+            >
+                {/* Seat Cushion */}
+                <mesh position={[0, 0.2, 0]} material={cushionMat}>
+                    <boxGeometry args={[0.55, 0.15, 0.6]} />
+                </mesh>
+                
+                {/* Seat Backrest (Curved/Tilted) */}
+                <mesh position={[0, 0.6, -0.25]} rotation={[-0.1, 0, 0]} material={cushionMat}>
+                    <boxGeometry args={[0.55, 0.7, 0.15]} />
+                </mesh>
+
+                {/* Left Armrest */}
+                <mesh position={[-0.35, 0.45, 0]} material={frameMat}>
+                    <boxGeometry args={[0.1, 0.1, 0.6]} />
+                </mesh>
+
+                {/* Right Armrest */}
+                <mesh position={[0.35, 0.45, 0]} material={frameMat}>
+                    <boxGeometry args={[0.1, 0.1, 0.6]} />
+                </mesh>
+                
+                {/* Cupholders (subtle indent/metal ring on armrests) */}
+                <mesh position={[-0.35, 0.5, 0.2]} rotation={[Math.PI/2, 0, 0]}>
+                    <cylinderGeometry args={[0.03, 0.03, 0.01, 16]} />
+                    <meshStandardMaterial color="#000" />
+                </mesh>
+                <mesh position={[0.35, 0.5, 0.2]} rotation={[Math.PI/2, 0, 0]}>
+                    <cylinderGeometry args={[0.03, 0.03, 0.01, 16]} />
+                    <meshStandardMaterial color="#000" />
+                </mesh>
+
+                {/* Frame Base/Legs */}
+                <mesh position={[0, 0.05, -0.1]} material={frameMat}>
+                    <boxGeometry args={[0.4, 0.1, 0.3]} />
+                </mesh>
+
+                {/* Brass Edge Outline for Selected/Recommended */}
+                {(isRecommended || isSelected) && (
+                    <mesh position={[0, 0.6, -0.17]} rotation={[-0.1, 0, 0]}>
+                        <boxGeometry args={[0.58, 0.73, 0.02]} />
+                        <meshBasicMaterial color="#B08A3E" />
+                    </mesh>
+                )}
+                
+                {/* Warm highlight on hover */}
+                {hovered && isAvailable && !isAnalyzing && (
+                    <pointLight color="#F5F1E8" intensity={1} distance={1.5} position={[0, 1, 0.5]} />
+                )}
+            </group>
+        </group>
+    );
+}
+
+// --- Bright Luxury Theatre Environment ---
+function TheatreScene({ seats, selectedSeats, recommendedSeats, onSeatClick, algorithmState }) {
+    const groupRef = useRef();
+    const { camera } = useThree();
+    const scanRef = useRef();
+    
+    const rowGroups = {};
+    seats.forEach(seat => {
+        const rowChar = seat.SeatNumber.match(/^[A-Za-z]+/)[0];
+        if (!rowGroups[rowChar]) rowGroups[rowChar] = [];
+        rowGroups[rowChar].push(seat);
+    });
+    const sortedRows = Object.keys(rowGroups).sort();
+    
+    // Calculate center of recommended seats for Phase 4 focus
+    const recommendedCenter = new THREE.Vector3(0, 0, 0);
+    if (recommendedSeats.size > 0 && algorithmState === 'done') {
+        let xSum = 0, zSum = 0;
+        let count = 0;
+        sortedRows.forEach((rowChar, rIdx) => {
+            const rowSeats = rowGroups[rowChar].sort((a,b) => parseInt(a.SeatNumber.substring(1)) - parseInt(b.SeatNumber.substring(1)));
+            const zPos = -2 + rIdx * 1.5;
+            rowSeats.forEach((seat, cIdx) => {
+                if (recommendedSeats.has(seat.SeatID)) {
+                    const xPos = (cIdx - (rowSeats.length - 1) / 2) * 1.1;
+                    xSum += xPos;
+                    zSum += zPos;
+                    count++;
+                }
+            });
+        });
+        if (count > 0) {
+            recommendedCenter.set(xSum / count, 0, zSum / count);
+        }
+    }
+
+    useFrame((state, delta) => {
+        if (algorithmState === 'idle') {
+            // Subtle parallax mouse movement (2-4 degrees)
+            const targetX = state.pointer.x * 0.5;
+            const targetY = 8 + state.pointer.y * 0.5;
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.02);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.02);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, 11, 0.02);
             
-            {/* Legend */}
-            <div style={{ display: 'flex', gap: '2rem', marginBottom: '3rem', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--c-text-secondary)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: 24, height: 24, backgroundColor: '#eaeaea', borderRadius: '4px' }}></div>
-                    <span>Standard</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: 24, height: 24, backgroundColor: '#f7f0df', border: '1px solid #d4c5a3', borderRadius: '4px' }}></div>
-                    <span>Premium</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: 24, height: 24, backgroundColor: '#222222', borderRadius: '4px' }}></div>
-                    <span>Booked</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: 24, height: 24, backgroundColor: '#5D111A', borderRadius: '4px' }}></div>
-                    <span>Selected</span>
-                </div>
-            </div>
+            // Look slightly below center to ground the perspective
+            camera.lookAt(targetX * 0.2, 2, -2);
+        } else if (algorithmState === 'analyzing' || algorithmState === 'finding') {
+            // Phase 1/2: Camera moves slightly forward
+            camera.position.lerp(new THREE.Vector3(0, 7, 8), 0.02);
+            camera.lookAt(0, 2, 0);
+            
+            // Phase 2: Warm sweep scan light across the rows sequentially
+            if (scanRef.current) {
+                const scanZ = Math.sin(state.clock.elapsedTime * 2.5) * 4;
+                scanRef.current.position.z = scanZ;
+            }
+        } else if (algorithmState === 'done') {
+            // Phase 4: Focus tightly on recommended row
+            const targetCamPos = recommendedCenter.clone().add(new THREE.Vector3(0, 4, 5));
+            camera.position.lerp(targetCamPos, 0.03);
+            camera.lookAt(recommendedCenter);
+        }
+    });
 
-            {/* Screen indicator */}
-            <div style={{ marginBottom: '4rem', width: '80%', maxWidth: '800px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: '100%', height: '8px', background: 'linear-gradient(to bottom, #d4c5a3, transparent)', borderRadius: '50% 50% 0 0 / 100% 100% 0 0' }}></div>
-                <span className="font-sans" style={{ marginTop: '0.5rem', fontSize: '0.65rem', letterSpacing: '0.3em', color: 'var(--c-text-muted)' }}>SCREEN</span>
-            </div>
+    const getSeatStatus = (seat) => {
+        if (seat.Status === 'BOOKED') return 'booked';
+        if (selectedSeats.has(seat.SeatID)) return 'selected';
+        if (recommendedSeats.has(seat.SeatID)) return 'recommended';
+        return 'available';
+    };
 
-            {/* Seats Grid */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '800px' }}>
-                {sortedRows.map(row => (
-                    <div key={row} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                        <div className="font-mono" style={{ width: '30px', color: 'var(--c-text-muted)', fontSize: '0.9rem', fontWeight: 600, textAlign: 'center' }}>
-                            {row}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', flex: 1 }}>
-                            {rows[row].map(seat => {
-                                const isBooked = seat.Status === 'booked' || seat.Status === 'BOOKED';
-                                const isSelected = selectedSeats.has(seat.SeatID);
-                                const isRecommended = recommendedSeats.has(seat.SeatID);
-                                const isPremium = seat.SeatType?.toUpperCase() === 'PREMIUM';
+    return (
+        <group ref={groupRef}>
+            {/* Cinematic Emissive Screen */}
+            <mesh position={[0, 4.5, -7]}>
+                <cylinderGeometry args={[18, 18, 7, 32, 1, false, Math.PI * 0.8, Math.PI * 0.4]} />
+                <meshStandardMaterial color="#FFFFFF" emissive="#FFE5C4" emissiveIntensity={0.6} side={THREE.DoubleSide} />
+            </mesh>
+            
+            <Text position={[0, 4.5, -6.5]} fontSize={0.4} color="#B08A3E" letterSpacing={0.4} opacity={0.8} font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff">
+                SCREEN
+            </Text>
 
-                                let bgColor = '#eaeaea';
-                                let textColor = '#171615';
-                                let border = '1px solid transparent';
-                                let cursor = 'pointer';
+            {/* Architecture / Walls & Floor */}
+            {/* Floor/Carpet */}
+            <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[40, 30]} />
+                <meshStandardMaterial color="#2E2822" roughness={0.9} />
+            </mesh>
+            
+            {/* Left Wall */}
+            <mesh position={[-12, 5, -2]} rotation={[0, Math.PI / 2, 0]}>
+                <planeGeometry args={[20, 10]} />
+                <meshStandardMaterial color="#EFE9DD" roughness={0.8} />
+            </mesh>
+            
+            {/* Right Wall */}
+            <mesh position={[12, 5, -2]} rotation={[0, -Math.PI / 2, 0]}>
+                <planeGeometry args={[20, 10]} />
+                <meshStandardMaterial color="#EFE9DD" roughness={0.8} />
+            </mesh>
+            
+            {/* Ceiling */}
+            <mesh position={[0, 10, -2]} rotation={[Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[24, 20]} />
+                <meshStandardMaterial color="#EFE9DD" roughness={1} />
+            </mesh>
 
-                                if (isBooked) {
-                                    bgColor = '#222222';
-                                    textColor = '#444';
-                                    cursor = 'not-allowed';
-                                } else if (isSelected) {
-                                    bgColor = '#5D111A';
-                                    textColor = '#fff';
-                                } else if (isRecommended) {
-                                    bgColor = '#B08A3E';
-                                    textColor = '#fff';
-                                } else if (isPremium) {
-                                    bgColor = '#f7f0df';
-                                    textColor = '#B08A3E';
-                                    border = '1px solid #d4c5a3';
-                                }
+            {/* Curtains */}
+            {/* Left Curtain */}
+            <mesh position={[-10, 4, -6]} rotation={[0, Math.PI / 8, 0]}>
+                <cylinderGeometry args={[1, 1, 8, 16, 1, false, 0, Math.PI]} />
+                <meshStandardMaterial color="#7C1F2A" roughness={0.9} />
+            </mesh>
+            <mesh position={[-11, 4, -6.5]} rotation={[0, Math.PI / 8, 0]}>
+                <cylinderGeometry args={[1.5, 1.5, 8, 16, 1, false, 0, Math.PI]} />
+                <meshStandardMaterial color="#7C1F2A" roughness={0.9} />
+            </mesh>
+            
+            {/* Right Curtain */}
+            <mesh position={[10, 4, -6]} rotation={[0, -Math.PI / 8, 0]}>
+                <cylinderGeometry args={[1, 1, 8, 16, 1, false, Math.PI, Math.PI]} />
+                <meshStandardMaterial color="#7C1F2A" roughness={0.9} />
+            </mesh>
+            <mesh position={[11, 4, -6.5]} rotation={[0, -Math.PI / 8, 0]}>
+                <cylinderGeometry args={[1.5, 1.5, 8, 16, 1, false, Math.PI, Math.PI]} />
+                <meshStandardMaterial color="#7C1F2A" roughness={0.9} />
+            </mesh>
 
-                                return (
-                                    <button
-                                        key={seat.SeatID}
-                                        onClick={() => !isBooked && onSeatClick(seat)}
-                                        disabled={isBooked || algorithmState === 'analyzing' || algorithmState === 'finding'}
-                                        style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            backgroundColor: bgColor,
-                                            color: textColor,
-                                            border: border,
-                                            borderRadius: '6px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.75rem',
-                                            fontFamily: 'var(--font-sans)',
-                                            fontWeight: 600,
-                                            cursor: cursor,
-                                            transition: 'all 0.2s',
-                                            opacity: (algorithmState === 'analyzing' || algorithmState === 'finding') ? 0.6 : 1,
-                                            boxShadow: isSelected ? '0 4px 10px rgba(93,17,26,0.3)' : 'none',
-                                            transform: isSelected ? 'scale(1.1)' : 'scale(1)'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            if (!isBooked && !isSelected && algorithmState === 'idle') {
-                                                e.currentTarget.style.transform = 'scale(1.05)';
-                                            }
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            if (!isBooked && !isSelected) {
-                                                e.currentTarget.style.transform = 'scale(1)';
-                                            }
-                                        }}
-                                    >
-                                        {seat.SeatNumber.slice(1)}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <div className="font-mono" style={{ width: '30px', color: 'var(--c-text-muted)', fontSize: '0.9rem', fontWeight: 600, textAlign: 'center' }}>
-                            {row}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
+            {/* Seats Layout */}
+            <group position={[0, 0, 0]}>
+                {sortedRows.map((rowChar, rIdx) => {
+                    const rowSeats = rowGroups[rowChar].sort((a,b) => parseInt(a.SeatNumber.substring(1)) - parseInt(b.SeatNumber.substring(1)));
+                    const zPos = -2 + rIdx * 1.5; // Cinematic rake depth
+                    const yPos = rIdx * 0.35; // Raked height
+                    
+                    return rowSeats.map((seat, cIdx) => {
+                        const xPos = (cIdx - (rowSeats.length - 1) / 2) * 1.1;
+                        const status = getSeatStatus(seat);
+                        
+                        return (
+                            <Seat3D 
+                                key={seat.SeatID}
+                                position={[xPos, yPos, zPos]}
+                                seatData={seat}
+                                status={status}
+                                isAnalyzing={algorithmState === 'analyzing' || algorithmState === 'finding'}
+                                onClick={() => {
+                                    if (status !== 'booked') onSeatClick(seat);
+                                }}
+                            />
+                        );
+                    });
+                })}
+            </group>
+
+            {/* Warm Architectural Lighting */}
+            <ambientLight intensity={0.6} color="#FFE5C4" />
+            
+            {/* Screen Primary Bounce Light */}
+            <pointLight position={[0, 4, -4]} intensity={1.5} color="#FFE5C4" distance={15} />
+            
+            {/* Ceiling Warm Lights */}
+            <pointLight position={[-5, 9, 2]} intensity={0.8} color="#FFDCA8" distance={10} />
+            <pointLight position={[5, 9, 2]} intensity={0.8} color="#FFDCA8" distance={10} />
+            
+            {/* Wall Sconces (Left/Right) */}
+            <pointLight position={[-11.5, 3, 0]} intensity={1.2} color="#B08A3E" distance={5} />
+            <mesh position={[-11.9, 3, 0]} rotation={[0, 0, 0]}>
+                <boxGeometry args={[0.2, 0.6, 0.4]} />
+                <meshStandardMaterial color="#B08A3E" />
+            </mesh>
+            
+            <pointLight position={[11.5, 3, 0]} intensity={1.2} color="#B08A3E" distance={5} />
+            <mesh position={[11.9, 3, 0]} rotation={[0, 0, 0]}>
+                <boxGeometry args={[0.2, 0.6, 0.4]} />
+                <meshStandardMaterial color="#B08A3E" />
+            </mesh>
+
+            {/* Scanner Light representing algorithm */}
+            {(algorithmState === 'analyzing' || algorithmState === 'finding') && (
+                <SpotLight
+                    ref={scanRef}
+                    position={[0, 9, 0]}
+                    target-position={[0, 0, 0]}
+                    angle={0.6}
+                    penumbra={0.5}
+                    intensity={6}
+                    color="#B08A3E"
+                />
+            )}
+            
+            {/* Recommended Hero Light */}
+            {algorithmState === 'done' && (
+                <SpotLight
+                    position={[recommendedCenter.x, recommendedCenter.y + 7, recommendedCenter.z + 1]}
+                    target-position={[recommendedCenter.x, recommendedCenter.y, recommendedCenter.z]}
+                    angle={0.5}
+                    penumbra={0.4}
+                    intensity={8}
+                    color="#C79A46"
+                />
+            )}
+        </group>
     );
 }
 
@@ -144,7 +327,7 @@ export default function SeatSelection() {
     const { showId } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-
+    
     const [seats, setSeats] = useState([]);
     const [selectedSeats, setSelectedSeats] = useState(new Set());
     const [recommendedSeats, setRecommendedSeats] = useState(new Set());
@@ -169,7 +352,7 @@ export default function SeatSelection() {
 
     const handleSeatClick = (seat) => {
         if (algorithmState === 'analyzing' || algorithmState === 'finding') return;
-
+        
         const newSelected = new Set(selectedSeats);
         if (newSelected.has(seat.SeatID)) {
             newSelected.delete(seat.SeatID);
@@ -183,15 +366,15 @@ export default function SeatSelection() {
 
     const handleFindBestSeats = async () => {
         if (algorithmState === 'analyzing' || algorithmState === 'finding') return;
-
+        
         setError(null);
         setRecommendedSeats(new Set());
         setSelectedSeats(new Set());
-
+        
         // Phase 1: Analyzing...
         setAlgorithmState('analyzing');
         await new Promise(r => setTimeout(r, 1200));
-
+        
         // Phase 2: Scanning...
         setAlgorithmState('finding');
         await new Promise(r => setTimeout(r, 1500));
@@ -200,10 +383,10 @@ export default function SeatSelection() {
             // Phase 3: Backend returns
             const result = await recommendSeats(showId, groupSize);
             const recSeatIds = result.recommendedSeats.map(s => s.SeatID);
-
+            
             setRecommendedSeats(new Set(recSeatIds));
             setSelectedSeats(new Set(recSeatIds));
-
+            
             // Phase 4: Focus and elevate
             setAlgorithmState('done');
         } catch (err) {
@@ -253,15 +436,15 @@ export default function SeatSelection() {
     const selectedSeatNames = Array.from(selectedSeats).map(id => seats.find(s => s.SeatID === id)?.SeatNumber).sort().join(' · ');
 
     return (
-        <motion.div
+        <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            style={{
-                width: '100vw',
-                height: '100vh',
-                display: 'flex',
+            style={{ 
+                width: '100vw', 
+                height: '100vh', 
+                display: 'flex', 
                 overflow: 'hidden',
                 backgroundColor: 'var(--c-bg-main)'
             }}
@@ -277,14 +460,14 @@ export default function SeatSelection() {
             }}>
                 {/* Left side (72%) Nav */}
                 <div style={{ width: '72%', padding: '0 4rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <button
+                    <button 
                         onClick={() => navigate('/')}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.75rem',
+                        style={{ 
+                            display: 'flex', alignItems: 'center', gap: '0.75rem', 
                             color: 'var(--c-text-primary)', pointerEvents: 'auto'
                         }}
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20} /> 
                         <span className="font-serif" style={{ fontSize: '1.5rem', fontWeight: 600 }}>CineTicket</span>
                     </button>
                 </div>
@@ -302,20 +485,25 @@ export default function SeatSelection() {
                 </div>
             </div>
 
-            {/* Left: 72% 2D Theatre Grid Viewport */}
-            <div style={{ width: '72%', position: 'relative', backgroundColor: 'var(--c-bg-main)', overflowY: 'auto', paddingTop: '6rem' }}>
-                <SeatGrid
-                    seats={seats}
-                    selectedSeats={selectedSeats}
-                    recommendedSeats={recommendedSeats}
-                    onSeatClick={handleSeatClick}
-                    algorithmState={algorithmState}
-                />
-
+            {/* Left: 72% 3D Theatre Viewport */}
+            <div style={{ width: '72%', position: 'relative', backgroundColor: 'var(--c-bg-main)' }}>
+                <Canvas dpr={[1, 2]}>
+                    <PerspectiveCamera makeDefault position={[0, 8, 12]} fov={50} />
+                    <color attach="background" args={['#F7F4EC']} />
+                    <fog attach="fog" args={['#F7F4EC', 12, 35]} />
+                    <TheatreScene 
+                        seats={seats} 
+                        selectedSeats={selectedSeats}
+                        recommendedSeats={recommendedSeats}
+                        onSeatClick={handleSeatClick}
+                        algorithmState={algorithmState}
+                    />
+                </Canvas>
+                
                 {/* Visualizer Status Overlay */}
                 <AnimatePresence mode="wait">
                     {algorithmState !== 'idle' && (
-                        <motion.div
+                        <motion.div 
                             key={algorithmState}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -333,11 +521,11 @@ export default function SeatSelection() {
                                 pointerEvents: 'none'
                             }}
                         >
-                            <span className="font-sans" style={{
-                                fontSize: '1rem',
-                                letterSpacing: '0.2em',
+                            <span className="font-sans" style={{ 
+                                fontSize: '1rem', 
+                                letterSpacing: '0.2em', 
                                 textTransform: 'uppercase',
-                                color: algorithmState === 'done' ? 'var(--c-gold)' : 'var(--c-text-primary)',
+                                color: algorithmState === 'done' ? 'var(--c-gold)' : 'var(--c-text-primary)', 
                                 marginBottom: '0.5rem',
                                 fontWeight: 600
                             }}>
@@ -359,9 +547,9 @@ export default function SeatSelection() {
             <div style={{ width: '1px', backgroundColor: 'rgba(176,138,62,0.15)', height: '100%', zIndex: 20 }} />
 
             {/* Right: 28% Booking Summary Ticket & Panel */}
-            <div style={{
-                width: '28%',
-                backgroundColor: 'var(--c-bg-main)',
+            <div style={{ 
+                width: '28%', 
+                backgroundColor: 'var(--c-bg-main)', 
                 padding: '8rem 3rem 4rem 3rem',
                 display: 'flex',
                 flexDirection: 'column',
@@ -377,24 +565,24 @@ export default function SeatSelection() {
                         {error}
                     </div>
                 )}
-
+                
                 <div style={{ marginBottom: '4rem', zIndex: 2 }}>
                     <h3 className="font-serif" style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--c-text-primary)' }}>
                         SEAT SELECTION
                     </h3>
-
+                    
                     <label className="font-sans" style={{ display: 'block', fontSize: '0.75rem', color: 'var(--c-text-muted)', letterSpacing: '0.15em', marginBottom: '1rem', textTransform: 'uppercase', fontWeight: 600 }}>
                         Group Size
                     </label>
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-                        <input
-                            type="number"
-                            min="1" max="10"
-                            value={groupSize}
+                        <input 
+                            type="number" 
+                            min="1" max="10" 
+                            value={groupSize} 
                             onChange={(e) => setGroupSize(parseInt(e.target.value) || 1)}
                             className="font-sans"
-                            style={{
-                                width: '80px',
+                            style={{ 
+                                width: '80px', 
                                 backgroundColor: 'transparent',
                                 border: '1px solid rgba(23, 22, 21, 0.1)',
                                 color: 'var(--c-text-primary)',
@@ -404,11 +592,11 @@ export default function SeatSelection() {
                                 outline: 'none'
                             }}
                         />
-                        <button
+                        <button 
                             onClick={handleFindBestSeats}
                             disabled={algorithmState === 'analyzing' || algorithmState === 'finding'}
                             className="font-sans"
-                            style={{
+                            style={{ 
                                 flex: 1,
                                 backgroundColor: 'transparent',
                                 border: '1px solid var(--c-gold)',
@@ -455,7 +643,7 @@ export default function SeatSelection() {
                             {selectedSeats.size > 0 ? selectedSeatNames : '---'}
                         </div>
                     </div>
-
+                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
                         <div className="font-sans" style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-muted)' }}>
                             TOTAL
@@ -465,7 +653,7 @@ export default function SeatSelection() {
                         </div>
                     </div>
 
-                    <button
+                    <button 
                         onClick={handleBook}
                         disabled={booking || selectedSeats.size === 0}
                         style={{
@@ -503,7 +691,7 @@ export default function SeatSelection() {
                         <Ticket size={16} />
                         {booking ? 'PROCESSING...' : 'CONFIRM BOOKING'}
                     </button>
-
+                    
                     {/* Ticket Perforations (Cutouts) */}
                     <div style={{ position: 'absolute', top: '45%', left: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--c-bg-main)', borderRight: '1px solid rgba(176,138,62,0.1)' }} />
                     <div style={{ position: 'absolute', top: '45%', right: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--c-bg-main)', borderLeft: '1px solid rgba(176,138,62,0.1)' }} />
