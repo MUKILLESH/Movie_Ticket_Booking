@@ -24,7 +24,7 @@ export default function BookingConfirmation() {
 
 
 
-    if (loading) return null;
+    if (loading) return <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--c-bg-main)', color: 'var(--c-gold)' }}>Loading Ticket...</div>;
 
     if (!booking || booking.error) return <div style={{ textAlign: 'center', padding: '10rem', color: 'var(--c-text-primary)' }}>Error retrieving ticket.</div>;
 

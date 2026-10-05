@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { fetchSeatsForShow, recommendSeats, createBooking } from '../services/api';
 
 // --- 2D Seat Grid Component ---
 function SeatGrid({ seats, selectedSeats, recommendedSeats, onSeatClick, algorithmState }) {
@@ -226,7 +227,23 @@ export default function SeatSelection() {
         }
     };
 
-    if (loading) return null;
+    if (loading) {
+        return (
+            <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--c-bg-main)' }}>
+                <div style={{ color: 'var(--c-gold)' }}>Loading Seats...</div>
+            </div>
+        );
+    }
+
+    if (error && seats.length === 0) {
+        return (
+            <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--c-bg-main)', color: 'var(--c-burgundy)' }}>
+                <h2>Oops! Something went wrong.</h2>
+                <p>{error}</p>
+                <Link to="/" style={{ marginTop: '1rem', color: 'var(--c-gold)', textDecoration: 'none' }}>Return to Home</Link>
+            </div>
+        );
+    }
 
     const totalPrice = Array.from(selectedSeats).reduce((total, id) => {
         const seat = seats.find(s => s.SeatID === id);

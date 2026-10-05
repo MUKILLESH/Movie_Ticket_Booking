@@ -314,7 +314,7 @@ export default function DemoDashboard() {
     ];
 
     return (
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--c-bg-main)', color: 'var(--c-text-primary)' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--c-bg-main)', color: 'var(--c-text-primary)', paddingTop: '80px' }}>
             
             {/* Sidebar */}
             <div style={{ width: '250px', backgroundColor: 'var(--c-surface)', borderRight: '1px solid rgba(176,138,62,0.2)', padding: '2rem 0', display: 'flex', flexDirection: 'column', flexShrink: 0, zIndex: 10 }}>
