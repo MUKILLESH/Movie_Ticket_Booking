@@ -138,9 +138,11 @@ export default function MovieDetails() {
                                         No upcoming screenings available.
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         {Object.keys(showsByTheatre).map(theatre => {
                                             const isSelected = selectedCinema === theatre;
+                                            const uniqueDates = Array.from(new Set(showsByTheatre[theatre].map(s => s.ShowDate))).length;
+                                            const showsCount = showsByTheatre[theatre].length;
                                             return (
                                                 <button key={theatre}
                                                     onClick={() => {
@@ -149,20 +151,45 @@ export default function MovieDetails() {
                                                         setSelectedShow(null);
                                                     }}
                                                     style={{
-                                                        padding: '1rem 2rem',
-                                                        backgroundColor: isSelected ? 'var(--c-gold)' : 'transparent',
-                                                        color: isSelected ? '#fff' : 'var(--c-text-primary)',
-                                                        border: `1px solid ${isSelected ? 'var(--c-gold)' : 'var(--c-border)'}`,
-                                                        borderRadius: '4px',
-                                                        fontSize: '0.85rem',
-                                                        letterSpacing: '0.1em',
-                                                        textTransform: 'uppercase',
-                                                        fontWeight: 600,
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease'
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                        width: '100%', padding: '1.5rem',
+                                                        backgroundColor: isSelected ? 'rgba(176,138,62,0.03)' : 'var(--c-surface)',
+                                                        border: `1px solid ${isSelected ? 'var(--c-gold)' : 'rgba(176,138,62,0.2)'}`,
+                                                        borderRadius: '4px', cursor: 'pointer',
+                                                        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                                                        boxShadow: isSelected ? '0 4px 15px rgba(176,138,62,0.1)' : '0 2px 8px rgba(0,0,0,0.02)',
+                                                        textAlign: 'left'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        if (!isSelected) {
+                                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.06)';
+                                                            e.currentTarget.style.borderColor = 'rgba(176,138,62,0.4)';
+                                                        }
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        if (!isSelected) {
+                                                            e.currentTarget.style.transform = 'translateY(0)';
+                                                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                                                            e.currentTarget.style.borderColor = 'rgba(176,138,62,0.2)';
+                                                        }
                                                     }}
                                                 >
-                                                    {theatre}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                        <span className="font-serif" style={{ fontSize: '1.4rem', color: isSelected ? 'var(--c-gold)' : 'var(--c-text-primary)', transition: 'color 0.3s ease' }}>{theatre}</span>
+                                                        <span className="font-sans" style={{ fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--c-text-muted)', textTransform: 'uppercase' }}>
+                                                            Premium Screening · {showsCount} SHOWS · {uniqueDates} {uniqueDates === 1 ? 'DAY' : 'DAYS'} AVAILABLE
+                                                        </span>
+                                                    </div>
+                                                    <div style={{
+                                                        padding: '0.5rem 1.25rem', border: `1px solid ${isSelected ? 'var(--c-gold)' : 'rgba(176,138,62,0.4)'}`,
+                                                        borderRadius: '2px', fontSize: '0.7rem', letterSpacing: '0.15em',
+                                                        textTransform: 'uppercase', color: isSelected ? 'var(--c-surface)' : 'var(--c-text-primary)',
+                                                        backgroundColor: isSelected ? 'var(--c-gold)' : 'transparent', fontWeight: 600,
+                                                        transition: 'all 0.3s ease'
+                                                    }}>
+                                                        {isSelected ? 'SELECTED' : 'SELECT'}
+                                                    </div>
                                                 </button>
                                             );
                                         })}
@@ -178,13 +205,12 @@ export default function MovieDetails() {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.4 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                     >
                                         <h3 className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--c-text-secondary)', marginBottom: '1.5rem', fontWeight: 400 }}>
                                             2. Select Date
                                         </h3>
-                                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                            {/* Get unique dates for selected cinema */}
+                                        <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid rgba(176,138,62,0.2)', paddingBottom: '1rem' }}>
                                             {Array.from(new Set(showsByTheatre[selectedCinema].map(s => s.ShowDate))).sort().map(dateStr => {
                                                 const isSelected = selectedDate === dateStr;
                                                 const formattedDate = format(parseISO(dateStr), 'EEE, MMM dd');
@@ -195,20 +221,29 @@ export default function MovieDetails() {
                                                             setSelectedShow(null);
                                                         }}
                                                         style={{
-                                                            padding: '1rem 2rem',
-                                                            backgroundColor: isSelected ? 'var(--c-gold)' : 'transparent',
-                                                            color: isSelected ? '#fff' : 'var(--c-text-primary)',
-                                                            border: `1px solid ${isSelected ? 'var(--c-gold)' : 'var(--c-border)'}`,
-                                                            borderRadius: '4px',
-                                                            fontSize: '0.85rem',
-                                                            letterSpacing: '0.1em',
-                                                            textTransform: 'uppercase',
-                                                            fontWeight: 600,
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.3s ease'
+                                                            background: 'none', border: 'none', padding: '0 0 0.5rem 0',
+                                                            color: isSelected ? 'var(--c-gold)' : 'var(--c-text-muted)',
+                                                            fontSize: '0.9rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+                                                            fontWeight: isSelected ? 600 : 400, cursor: 'pointer',
+                                                            position: 'relative', transition: 'color 0.3s ease'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (!isSelected) e.currentTarget.style.color = 'var(--c-text-primary)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (!isSelected) e.currentTarget.style.color = 'var(--c-text-muted)';
                                                         }}
                                                     >
                                                         {formattedDate}
+                                                        {isSelected && (
+                                                            <motion.div
+                                                                layoutId="date-underline"
+                                                                style={{
+                                                                    position: 'absolute', bottom: '-1rem', left: 0, right: 0,
+                                                                    height: '2px', backgroundColor: 'var(--c-gold)'
+                                                                }}
+                                                            />
+                                                        )}
                                                     </button>
                                                 );
                                             })}
@@ -225,7 +260,7 @@ export default function MovieDetails() {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.4 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                     >
                                         <h3 className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--c-text-secondary)', marginBottom: '1.5rem', fontWeight: 400 }}>
                                             3. Select Showtime
@@ -238,15 +273,30 @@ export default function MovieDetails() {
                                                     <button key={show.ShowID}
                                                         onClick={() => setSelectedShow(show)}
                                                         style={{
-                                                            padding: '1rem 2rem',
+                                                            padding: '0.8rem 2rem',
                                                             backgroundColor: isSelected ? 'var(--c-gold)' : 'transparent',
-                                                            color: isSelected ? '#fff' : 'var(--c-text-primary)',
-                                                            border: `1px solid ${isSelected ? 'var(--c-gold)' : 'var(--c-border)'}`,
-                                                            borderRadius: '4px',
-                                                            fontSize: '1.1rem',
-                                                            fontFamily: 'var(--font-serif)',
+                                                            color: isSelected ? 'var(--c-surface)' : 'var(--c-text-primary)',
+                                                            border: `1px solid ${isSelected ? 'var(--c-gold)' : 'rgba(176,138,62,0.4)'}`,
+                                                            borderRadius: '2px',
+                                                            fontSize: '1rem',
+                                                            fontFamily: 'var(--font-mono)',
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.3s ease'
+                                                            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                                            boxShadow: isSelected ? '0 4px 12px rgba(176,138,62,0.2)' : 'none'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (!isSelected) {
+                                                                e.currentTarget.style.borderColor = 'var(--c-gold)';
+                                                                e.currentTarget.style.backgroundColor = 'rgba(176,138,62,0.05)';
+                                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                                            }
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (!isSelected) {
+                                                                e.currentTarget.style.borderColor = 'rgba(176,138,62,0.4)';
+                                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                            }
                                                         }}
                                                     >
                                                         {timeStr}
