@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Terminal, Play, RotateCcw, Database, CheckCircle2, AlertCircle, 
+  Terminal, Play, RotateCcw, CheckCircle2, AlertCircle,
   Trash2, Edit3, PlusCircle, Search, Copy, Check, Table, Clock, 
-  ArrowRight, ExternalLink, RefreshCw, Layers, ShieldCheck, Sparkles 
+  ExternalLink, Layers, ShieldCheck, Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const DEFAULT_PRESETS = [
   {
@@ -112,10 +112,6 @@ export default function SqlQueryConsole() {
   const editorRef = useRef(null);
   const resultRef = useRef(null);
 
-  useEffect(() => {
-    fetchTableCounts();
-  }, []);
-
   const fetchTableCounts = async () => {
     try {
       const res = await fetch(`${API_URL}/admin/stats`);
@@ -134,6 +130,10 @@ export default function SqlQueryConsole() {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    fetchTableCounts();
+  }, []);
 
   const handleExecute = async (overrideSql) => {
     const queryToRun = (typeof overrideSql === 'string' ? overrideSql : sql).trim();

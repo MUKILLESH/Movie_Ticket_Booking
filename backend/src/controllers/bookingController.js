@@ -114,14 +114,13 @@ exports.getMyBookings = async (req, res, next) => {
                 b.TotalAmount, 
                 b.Status, 
                 m.Title as MovieTitle, 
-                m.PosterURL,
                 t.Name as TheatreName,
                 s.ShowDate,
-                s.StartTime,
+                s.ShowTime as StartTime,
                 (SELECT GROUP_CONCAT(se.SeatNumber SEPARATOR ', ') 
-                 FROM TICKET tk 
-                 JOIN SEAT se ON tk.SeatID = se.SeatID 
-                 WHERE tk.BookingID = b.BookingID) as Seats
+                 FROM BOOKING_SEAT bs
+                 JOIN SEAT se ON bs.SeatID = se.SeatID
+                 WHERE bs.BookingID = b.BookingID) as Seats
             FROM BOOKING b
             JOIN \`SHOW\` s ON b.ShowID = s.ShowID
             JOIN MOVIE m ON s.MovieID = m.MovieID

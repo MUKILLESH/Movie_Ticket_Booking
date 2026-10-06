@@ -98,12 +98,3 @@ export const createBooking = async (showId, seatIds, paymentMode = 'UPI') => {
     }
     return data;
 };
-
-export const simulateConcurrentBookings = async (showId, seatIds, numRequests) => {
-    const res = await fetch(`${API_URL}/test/concurrent-bookings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ showId, seatIds, numRequests })
-    });
-    return res.json();
-};
