@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Activity, Play, Shield, BarChart, RotateCcw, Terminal, ArrowRight, Sparkles } from 'lucide-react';
+import { Database, Play, Shield, RotateCcw, Terminal, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export default function DemoDashboard() {
     const [logs, setLogs] = useState([]);
@@ -30,52 +30,60 @@ export default function DemoDashboard() {
     const [rawSqlModalOpen, setRawSqlModalOpen] = useState(false);
     const [rawSqlText, setRawSqlText] = useState('');
 
+    const fetchWithAuth = useCallback(async (url, options = {}) => {
+        const token = localStorage.getItem('token');
+        const headers = { ...options.headers };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return fetch(url, { ...options, headers });
+    }, []);
+
+    const fetchMovies = useCallback(async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/movies`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    }, [fetchWithAuth]);
+
+    const fetchTheatres = useCallback(async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/theatres`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    }, [fetchWithAuth]);
+
+    const fetchBookings = useCallback(async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/bookings`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    }, [fetchWithAuth]);
+
+    const fetchShows = useCallback(async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/shows`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    }, [fetchWithAuth]);
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/admin/users`);
+            const data = await res.json();
+            setLabData(data);
+        } catch (e) { console.error(e); }
+    }, [fetchWithAuth]);
+
     useEffect(() => {
         if (labTab === 'MOVIES') fetchMovies();
         else if (labTab === 'THEATRES') fetchTheatres();
         else if (labTab === 'BOOKINGS') fetchBookings();
         else if (labTab === 'SHOWS') fetchShows();
         else if (labTab === 'USERS') fetchUsers();
-    }, [labTab]);
-
-    const fetchWithAuth = async (url, options = {}) => {
-        const token = localStorage.getItem('token');
-        const headers = { ...options.headers };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        return fetch(url, { ...options, headers });
-    };
-
-    const fetchMovies = async () => {
-        try {
-            const res = await fetchWithAuth(`${API_URL}/movies`);
-            const data = await res.json();
-            setLabData(data);
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchTheatres = async () => {
-        try {
-            const res = await fetchWithAuth(`${API_URL}/theatres`);
-            const data = await res.json();
-            setLabData(data);
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchBookings = async () => {
-        try {
-            const res = await fetchWithAuth(`${API_URL}/bookings`);
-            const data = await res.json();
-            setLabData(data);
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchShows = async () => {
-        try {
-            const res = await fetchWithAuth(`${API_URL}/shows`);
-            const data = await res.json();
-            setLabData(data);
-        } catch (e) { console.error(e); }
-    };
+    }, [labTab, fetchMovies, fetchTheatres, fetchBookings, fetchShows, fetchUsers]);
 
     const escapeSql = (str) => {
         if (typeof str !== 'string') return str;
@@ -131,7 +139,6 @@ export default function DemoDashboard() {
                 else if (labTab === 'BOOKINGS') fetchBookings();
                 else if (labTab === 'SHOWS') fetchShows();
                 else if (labTab === 'USERS') fetchUsers();
-                else if (labTab === 'USERS') fetchUsers();
 
                 fetchStats();
             } else {
@@ -144,11 +151,7 @@ export default function DemoDashboard() {
     };
 
 
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    const fetchStats = () => {
+    const fetchStats = useCallback(() => {
         fetchWithAuth(`${API_URL}/admin/stats`)
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -160,7 +163,11 @@ export default function DemoDashboard() {
                 }
             })
             .catch(err => console.error("Failed to load stats", err));
-    };
+    }, [fetchWithAuth]);
+
+    useEffect(() => {
+        fetchStats();
+    }, [fetchStats]);
 
     const addLog = (msg) => {
         setLogs(prev => [...prev, `[${new Date().toISOString().split('T')[1].substring(0, 8)}] ${msg}`]);
@@ -210,19 +217,17 @@ export default function DemoDashboard() {
                     body: JSON.stringify({ showId: 1, seatIds: targetSeatIds, paymentMode: 'UPI' })
                 }).then(async res => {
                     let data = {};
-                    try { data = await res.json(); } catch (e) { }
+                    try { data = await res.json(); } catch (err) { console.error(err); }
                     return { status: res.status, reqId, data };
                 });
             });
 
             const results = await Promise.all(requests);
 
-            let successCount = 0;
             let conflictCount = 0;
 
             results.forEach(res => {
                 if (res.status === 201) {
-                    successCount++;
                     addLog(`Req ${res.reqId} → SUCCESS (201 Created: Booking #${res.data?.booking?.BookingID || 'CONFIRMED'})`);
                     setQueueDemoState(prev => ({ ...prev, pending: Math.max(0, prev.pending - 1), processing: Math.max(0, prev.processing - 1), completed: prev.completed + 1 }));
                 } else if (res.status === 409) {
@@ -271,7 +276,7 @@ export default function DemoDashboard() {
                     addLog(`Req ${i} → 200 OK [ACCEPTED]`);
                 }
             } catch (err) {
-                addLog(`Req ${i} → Network error`);
+                addLog(`Req ${i} → Network error: ${err.message}`);
             }
             await new Promise(r => setTimeout(r, 60));
         }
