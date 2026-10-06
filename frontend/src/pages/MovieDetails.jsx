@@ -130,8 +130,8 @@ export default function MovieDetails() {
                             
                             {/* STEP 1: SELECT CINEMA */}
                             <div>
-                                <h3 className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--c-text-secondary)', marginBottom: '1.5rem', fontWeight: 400 }}>
-                                    1. Select Cinema
+                                <h3 className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--c-text-muted)', marginBottom: '1.5rem', letterSpacing: '0.15em', fontWeight: 600 }}>
+                                    01 &nbsp; SELECT CINEMA
                                 </h3>
                                 {Object.keys(showsByTheatre).length === 0 ? (
                                     <div className="font-sans" style={{ color: 'var(--c-text-muted)', fontStyle: 'italic' }}>
@@ -175,20 +175,21 @@ export default function MovieDetails() {
                                                         }
                                                     }}
                                                 >
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                                                         <span className="font-serif" style={{ fontSize: '1.4rem', color: isSelected ? 'var(--c-gold)' : 'var(--c-text-primary)', transition: 'color 0.3s ease' }}>{theatre}</span>
-                                                        <span className="font-sans" style={{ fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--c-text-muted)', textTransform: 'uppercase' }}>
-                                                            Premium Screening · {showsCount} SHOWS · {uniqueDates} {uniqueDates === 1 ? 'DAY' : 'DAYS'} AVAILABLE
+                                                        <span className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--c-text-muted)', marginTop: '0.2rem' }}>
+                                                            Premium Screening · Vellore
+                                                        </span>
+                                                        <span className="font-sans" style={{ fontSize: '0.75rem', color: 'var(--c-text-muted)', marginTop: '0.5rem', opacity: 0.8 }}>
+                                                            {showsCount} shows · {uniqueDates} {uniqueDates === 1 ? 'day' : 'days'} available
                                                         </span>
                                                     </div>
-                                                    <div style={{
-                                                        padding: '0.5rem 1.25rem', border: `1px solid ${isSelected ? 'var(--c-gold)' : 'rgba(176,138,62,0.4)'}`,
-                                                        borderRadius: '2px', fontSize: '0.7rem', letterSpacing: '0.15em',
-                                                        textTransform: 'uppercase', color: isSelected ? 'var(--c-surface)' : 'var(--c-text-primary)',
-                                                        backgroundColor: isSelected ? 'var(--c-gold)' : 'transparent', fontWeight: 600,
-                                                        transition: 'all 0.3s ease'
-                                                    }}>
-                                                        {isSelected ? 'SELECTED' : 'SELECT'}
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px' }}>
+                                                        {isSelected ? (
+                                                            <span style={{ color: 'var(--c-gold)', fontSize: '1.2rem' }}>✓</span>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--c-text-muted)', fontSize: '1.2rem', opacity: 0.5 }}>→</span>
+                                                        )}
                                                     </div>
                                                 </button>
                                             );
@@ -202,13 +203,13 @@ export default function MovieDetails() {
                                 {selectedCinema && (
                                     <motion.div
                                         key="dates"
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                     >
-                                        <h3 className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--c-text-secondary)', marginBottom: '1.5rem', fontWeight: 400 }}>
-                                            2. Select Date
+                                        <h3 className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--c-text-muted)', marginBottom: '1.5rem', letterSpacing: '0.15em', fontWeight: 600 }}>
+                                            02 &nbsp; SELECT DATE
                                         </h3>
                                         <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid rgba(176,138,62,0.2)', paddingBottom: '1rem' }}>
                                             {Array.from(new Set(showsByTheatre[selectedCinema].map(s => s.ShowDate))).sort().map(dateStr => {
@@ -257,13 +258,13 @@ export default function MovieDetails() {
                                 {selectedDate && (
                                     <motion.div
                                         key="shows"
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                     >
-                                        <h3 className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--c-text-secondary)', marginBottom: '1.5rem', fontWeight: 400 }}>
-                                            3. Select Showtime
+                                        <h3 className="font-sans" style={{ fontSize: '0.85rem', color: 'var(--c-text-muted)', marginBottom: '1.5rem', letterSpacing: '0.15em', fontWeight: 600 }}>
+                                            03 &nbsp; SELECT SHOWTIME
                                         </h3>
                                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                                             {showsByTheatre[selectedCinema].filter(s => s.ShowDate === selectedDate).sort((a, b) => a.ShowTime.localeCompare(b.ShowTime)).map(show => {
@@ -313,9 +314,9 @@ export default function MovieDetails() {
                                 {selectedShow && (
                                     <motion.div
                                         key="continue"
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
+                                        exit={{ opacity: 0, y: -8 }}
                                         transition={{ duration: 0.4 }}
                                         style={{ marginTop: '2rem' }}
                                     >

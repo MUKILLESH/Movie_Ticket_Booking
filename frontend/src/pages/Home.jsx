@@ -865,45 +865,6 @@ function HoverPoster({ movie, index }) {
                     <span>{movie.Duration}M</span>
                 </div>
 
-                <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex' }}>
-                    <button className="book-now-btn font-sans" style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                        padding: '0.6rem 1.25rem', backgroundColor: 'var(--c-surface)',
-                        color: 'var(--c-text-primary)', border: '1px solid rgba(176,138,62,0.3)',
-                        borderRadius: '2px', fontSize: '0.7rem', letterSpacing: '0.15em',
-                        textTransform: 'uppercase', fontWeight: 600, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.02)'
-                    }}
-                    onMouseEnter={(e) => { 
-                        e.currentTarget.style.backgroundColor = 'var(--c-gold)'; 
-                        e.currentTarget.style.color = 'var(--c-surface)';
-                        e.currentTarget.style.borderColor = 'var(--c-gold)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 15px rgba(176,138,62,0.15)';
-                        const arrow = e.currentTarget.querySelector('.arrow');
-                        if(arrow) arrow.style.transform = 'translateX(3px)';
-                    }}
-                    onMouseLeave={(e) => { 
-                        e.currentTarget.style.backgroundColor = 'var(--c-surface)'; 
-                        e.currentTarget.style.color = 'var(--c-text-primary)';
-                        e.currentTarget.style.borderColor = 'rgba(176,138,62,0.3)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)';
-                        const arrow = e.currentTarget.querySelector('.arrow');
-                        if(arrow) arrow.style.transform = 'translateX(0)';
-                    }}
-                    onMouseDown={(e) => {
-                        e.currentTarget.style.transform = 'translateY(1px)';
-                        e.currentTarget.style.boxShadow = '0 1px 2px rgba(176,138,62,0.1)';
-                    }}
-                    onMouseUp={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 15px rgba(176,138,62,0.15)';
-                    }}
-                    >
-                        BOOK TICKET <span className="arrow" style={{ transition: 'transform 0.3s ease', display: 'inline-block' }}>→</span>
-                    </button>
-                </div>
             </div>
         </motion.div>
     );
