@@ -57,21 +57,21 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
                 } else {
                     // Gap found, process existing sequence
                     if (currentSequence.length >= requestedSize) {
-                        extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
+                        extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row], row);
                     }
                     currentSequence = [seat];
                 }
             } else {
                 // Booked seat, process sequence and reset
                 if (currentSequence.length >= requestedSize) {
-                    extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
+                    extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row], row);
                 }
                 currentSequence = [];
             }
         }
         // End of row
         if (currentSequence.length >= requestedSize) {
-            extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row]);
+            extractSubBlocks(currentSequence, requestedSize, candidateBlocks, maxNumInRow[row], row);
         }
     }
 
@@ -81,10 +81,24 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
 
     // 3. Score blocks
     // Lower score is better
+    // Row Priority: E (highest/best) > D > C > B > A (lowest)
+    const ROW_PRIORITY = {
+        'E': 0,
+        'D': 1,
+        'C': 2,
+        'B': 3,
+        'A': 4,
+    };
+
     candidateBlocks.forEach(block => {
         let score = 0;
 
-        // Primary: Distance from center of the row
+        // Primary: Row tier priority (E > D > C > B > A)
+        const rowChar = block.row || (block.seats[0].row) || (block.seats[0].SeatNumber.match(/^[A-Za-z]+/)[0]);
+        const rowRank = ROW_PRIORITY[rowChar] !== undefined ? ROW_PRIORITY[rowChar] : 10;
+        score += rowRank * 500;
+
+        // Secondary: Distance from center of the row
         // A block's center should ideally align with the row's center
         const rowLength = block.rowLength;
         const centerOfRow = (1 + rowLength) / 2;
@@ -102,10 +116,6 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
             if (block.seats[0].SeatType !== preferredType) {
                 score += 1000;
             }
-        } else {
-             // If no preference, slight penalty for VIP/Premium to keep them for those who want them
-             // Or prioritize Premium/Regular. Let's just slightly penalize VIP if no preference
-             if(block.seats[0].SeatType === 'VIP') score += 100;
         }
 
         block.score = score;
@@ -120,14 +130,15 @@ function findBestContiguousSeats(seats, requestedSize, preferredType = null) {
     });
 }
 
-function extractSubBlocks(sequence, requestedSize, candidateBlocks, rowLength) {
+function extractSubBlocks(sequence, requestedSize, candidateBlocks, rowLength, row) {
     // If sequence is larger than requested, extract all possible sub-blocks of exact size
     // Example: sequence is 6, requested is 4. Sub-blocks: [0..3], [1..4], [2..5]
     for (let i = 0; i <= sequence.length - requestedSize; i++) {
         const subBlock = sequence.slice(i, i + requestedSize);
         candidateBlocks.push({
             seats: subBlock,
-            rowLength: rowLength
+            rowLength: rowLength,
+            row: row,
         });
     }
 }
